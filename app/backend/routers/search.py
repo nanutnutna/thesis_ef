@@ -1,4 +1,4 @@
-from fastapi import APIRouter,HTTPException,UploadFile
+from fastapi import APIRouter,HTTPException,UploadFile,Query
 from elasticsearch import Elasticsearch
 import pandas as pd
 from io import BytesIO
@@ -13,6 +13,7 @@ es = Elasticsearch("https://localhost:9200",
 
 INDEX_NAME = "document_data"
 
+## creat mapping and index thai
 if not es.indices.exists(index=INDEX_NAME):
     es.indices.create(index=INDEX_NAME,body={
         "mappings":{
@@ -61,7 +62,7 @@ async def index_document(doc: Document):
     return {"message": "Document indexed successfully", "id":response['_id']}
 
 @router.get("/search-data/")
-async def search_document(q: str):
+async def search(q: str = Query(..., description="Search query in Thai or English")):
     response = es.search(index=INDEX_NAME,body={
         "query":{
             "multi_match": {
