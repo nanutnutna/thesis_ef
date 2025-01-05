@@ -8,7 +8,7 @@ app.include_router(search.router)
 
 @app.get("/")
 async def root():
-    return {"message": "Welcomr to Elasticsearch FastAPI API"}
+    return {"message": "Welcome to Elasticsearch FastAPI API"}
 
 
 

@@ -13,22 +13,62 @@ es = Elasticsearch("https://localhost:9200",
 
 INDEX_NAME = "document_data"
 
-## creat mapping and index thai
 if not es.indices.exists(index=INDEX_NAME):
-    es.indices.create(index=INDEX_NAME,body={
-        "mappings":{
-            "properties":{
-                "กลุ่ม":{"type":"text"},
-                "ลำดับ":{"type":"float"},
-                "ชื่อ":{"type":"text"},
-                "รายละเอียด":{"type":"text"},
-                "หน่วย":{"type":"text"},
-                "ค่าแฟคเตอร์ (kgCO2e)":{"type":"float"},
-                "ข้อมูลอ่างอิง":{"type":"text"},
-                "วันที่อัพเดท":{"type":"text"}
+    es.indices.create(
+        index=INDEX_NAME,
+        body={
+            "settings": {
+                "analysis": {
+                    "analyzer": {
+                        "thai_english_analyzer": {
+                            "type": "custom",
+                            "tokenizer": "icu_tokenizer",## check type of tokenizer
+                            "filter": [
+                                "lowercase",
+                                "icu_folding"
+                            ]
+                        }
+                    }
+                }
+            },
+            "mappings": {
+                "properties": {
+                    "กลุ่ม": {
+                        "type": "text",
+                        "analyzer": "thai_english_analyzer"
+                    },
+                    "ลำดับ": {
+                        "type": "float"
+                    },
+                    "ชื่อ": {
+                        "type": "text",
+                        "analyzer": "thai_english_analyzer"
+                    },
+                    "รายละเอียด": {
+                        "type": "text",
+                        "analyzer": "thai_english_analyzer"
+                    },
+                    "หน่วย": {
+                        "type": "text"
+                    },
+                    "ค่าแฟคเตอร์ (kgCO2e)": {
+                        "type": "float"
+                    },
+                    "ข้อมูลอ้างอิง": {
+                        "type": "text",
+                        "analyzer": "thai_english_analyzer"
+                    },
+                    "วันที่อัพเดท": {
+                        "type": "text"
+                    }
+                }
             }
         }
-    })
+    )
+    print(f"Index '{INDEX_NAME}' has been created successfully.")
+else:
+    print(f"Index '{INDEX_NAME}' already exists.")
+
 
 @router.post("/upload-data/")
 async def upload_data(file: UploadFile):
@@ -63,29 +103,33 @@ async def index_document(doc: Document):
 
 @router.get("/search-data/")
 async def search(q: str = Query(..., description="Search query in Thai or English")):
-    response = es.search(index=INDEX_NAME,body={
-        "query":{
-            "multi_match": {
-                "query":q,
-                "fields": ["ชื่อ", "รายละเอียด", "กลุ่ม"]
+    try:
+        response = es.search(index=INDEX_NAME,body={
+            "query":{
+                "multi_match": {
+                    "query":q,
+                    "fields": ["ชื่อ", "รายละเอียด", "กลุ่ม","ข้อมูลอ้างอิง"],
+                    "operator": "and"
+                }
             }
-        }
-    })
+        })
 
-    unique_results = []
-    seen_ids = set()
-    for hit in response['hits']['hits']:
-        if hit["_id"] not in seen_ids:
-            unique_results.append({
-                "id": hit["_id"],
-                "กลุ่ม": hit["_source"].get("กลุ่ม", "N/A"),
-                "ลำดับ": hit["_source"].get("ลำดับ", "N/A"),
-                "ชื่อ": hit["_source"].get("ชื่อ", "N/A"),
-                "รายละเอียด": hit["_source"].get("รายละเอียด", "N/A"),
-                "หน่วย": hit["_source"].get("หน่วย", "N/A"),
-                "ค่าแฟคเตอร์ (kgCO2e)": hit["_source"].get("ค่าแฟคเตอร์ (kgCO2e)", "N/A"),
-                "ข้อมูลอ้างอิง": hit["_source"].get("ข้อมูลอ้างอิง", "N/A"),
-                "วันที่อัพเดท": hit["_source"].get("วันที่อัพเดท", "N/A")
-            })
-            seen_ids.add(hit["_id"])
+        unique_results = []
+        seen_ids = set()
+        for hit in response['hits']['hits']:
+            if hit["_id"] not in seen_ids:
+                unique_results.append({
+                    "id": hit["_id"],
+                    "กลุ่ม": hit["_source"].get("กลุ่ม", "N/A"),
+                    "ลำดับ": hit["_source"].get("ลำดับ", "N/A"),
+                    "ชื่อ": hit["_source"].get("ชื่อ", "N/A"),
+                    "รายละเอียด": hit["_source"].get("รายละเอียด", "N/A"),
+                    "หน่วย": hit["_source"].get("หน่วย", "N/A"),
+                    "ค่าแฟคเตอร์ (kgCO2e)": hit["_source"].get("ค่าแฟคเตอร์ (kgCO2e)", "N/A"),
+                    "ข้อมูลอ้างอิง": hit["_source"].get("ข้อมูลอ้างอิง", "N/A"),
+                    "วันที่อัพเดท": hit["_source"].get("วันที่อัพเดท", "N/A")
+                })
+                seen_ids.add(hit["_id"])
+    except Exception as e:
+        return {"error":str(e)}
     return unique_results
