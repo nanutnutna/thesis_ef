@@ -14,7 +14,7 @@ Anthracite, แอนทราไซต์, ถ่านหินแข็ง
 Lignite, ลิกไนต์, ถ่านหินน้ำตาล
 FUEL WOOD, ฟืน, ไม้เชื้อเพลิง
 Compressed Natural Gas, CNG, ก๊าซธรรมชาติอัด
-Liquified Petroleum Gas, LPG, ก๊าซปิโตรเลียมเหลว, ก๊าซหุงต้มม
+Liquified Petroleum Gas, LPG, ก๊าซปิโตรเลียมเหลว, ก๊าซหุงต้ม
 Natural gas, ก๊าซธรรมชาติ
 Diesel Oil, Diesel, น้ำมันดีเซล, ดีเซล
 Fuel oil, น้ำมันเตา
