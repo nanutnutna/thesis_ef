@@ -38,7 +38,7 @@ def extract_data(url:str, output:str):
     except Exception as e:
         print(f"Unexpected error occurred: {e}")
 
-    df.to_csv(f'{output}.csv',index=False)
+    df.to_csv(f'{output}.csv',index=False,encoding='utf-8-sig')
     df.to_json(f'{output}.json',orient='records',indent=4,force_ascii=False)
     return
 
