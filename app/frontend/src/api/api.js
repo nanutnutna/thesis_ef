@@ -17,3 +17,8 @@ export const searchData = (query) => {
 export const uploadData = (formData) => {
   return api.post('/upload-data-with-image/', formData);
 };
+
+
+export const fetchAutocomplete = async (query) => {
+  return await api.get(`/autocomplete/?q=${query}`);
+};

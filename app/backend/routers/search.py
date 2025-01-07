@@ -20,10 +20,33 @@ index_settings = {
                 "thai_english_synonym_filter": {
                     "type": "synonym",
                     "synonyms_path": "analysis/synonyms.txt"
+                },
+                "edge_ngram_filter": {
+                    "type": "edge_ngram",
+                    "min_gram": 1,
+                    "max_gram": 20,
+                    "token_chars": ["letter", "digit", "whitespace"]
                 }
             },
             "analyzer": {
-                "thai_english_analyzer": {
+                "autocomplete_index_analyzer": {
+                    "type": "custom",
+                    "tokenizer": "standard",
+                    "filter": [
+                        "lowercase",
+                        "icu_folding",
+                        "edge_ngram_filter"
+                    ]
+                },
+                "autocomplete_search_analyzer": {
+                    "type": "custom",
+                    "tokenizer": "standard",
+                    "filter": [
+                        "lowercase",
+                        "icu_folding"
+                    ]
+                },
+                "thai_synonym_analyzer": {
                     "type": "custom",
                     "tokenizer": "standard",
                     "filter": [
@@ -37,30 +60,26 @@ index_settings = {
     },
     "mappings": {
         "properties": {
-            "ลำดับ": {
-                "type": "float"
-            },
+            "ลำดับ": {"type": "float"},
             "ชื่อ": {
                 "type": "text",
-                "analyzer": "thai_english_analyzer"
+                "analyzer": "autocomplete_index_analyzer",
+                "search_analyzer": "thai_synonym_analyzer"
             },
-            "หน่วย": {
-                "type": "text"
-            },
-            "Total [kg CO2eq/unit]": {
-                "type": "float"
-            },
+            "หน่วย": {"type": "text"},
+            "Total [kg CO2eq/unit]": {"type": "float"},
             "ข้อมูลอ้างอิง": {
                 "type": "text",
-                "analyzer": "thai_english_analyzer"
+                "analyzer": "thai_synonym_analyzer"
             },
             "Description": {
                 "type": "text",
-                "analyzer": "thai_english_analyzer"
+                "analyzer": "thai_synonym_analyzer"
             }
         }
     }
 }
+
 
 if es.indices.exists(index=INDEX_NAME):
     print(f"Deleting existing index: {INDEX_NAME}")
@@ -125,7 +144,7 @@ async def search(q: str = Query(..., description="Search query in Thai or Englis
                 "multi_match": {
                     "query": q,
                     "fields": ["ชื่อ", "Description", "ข้อมูลอ้างอิง"],
-                    "operator": "and"
+                    "operator": "and" #"analyzer": "thai_english_analyzer"
                 }
             }
         })
@@ -150,11 +169,90 @@ async def search(q: str = Query(..., description="Search query in Thai or Englis
     return unique_results
 
 
+# @router.get("/autocomplete/")
+# async def autocomplete(q: str = Query(..., description="Autocomplete query")):
+#     try:
+#         response = es.search(index=INDEX_NAME, body={
+#             "query": {
+#                 "match_phrase_prefix": {
+#                     "ชื่อ": {
+#                         "query": q
+#                     }
+#                 }
+#             },
+#             "_source": ["ชื่อ"],
+#             "size": 10
+#         })
+
+#         suggestions = [hit["_source"].get("ชื่อ", "N/A") for hit in response['hits']['hits']]
+#         return {"suggestions": suggestions}
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
 
 
+# @router.get("/autocomplete/")
+# async def autocomplete(q: str = Query(..., description="Search autocomplete query")):
+#     try:
+#         response = es.search(index=INDEX_NAME, body={
+#             "suggest": {
+#                 "autocomplete-suggest": {
+#                     "prefix": q,
+#                     "completion": {
+#                         "field": "ชื่อ",
+#                         "fuzzy": {
+#                             "fuzziness": "auto"
+#                         }
+#                     }
+#                 }
+#             }
+#         })
 
+#         suggestions = []
+#         for option in response['suggest']['autocomplete-suggest'][0]['options']:
+#             suggestions.append(option['text'])
 
+#         return {"suggestions": suggestions}
 
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/autocomplete/")
+async def autocomplete(q: str = Query(..., description="Autocomplete query")):
+    """
+    Autocomplete พร้อม Fuzzy Search
+    """
+    try:
+        response = es.search(index=INDEX_NAME, body={
+            "query": {
+                "bool": {
+                    "should": [
+                        {
+                            "match_phrase_prefix": {
+                                "ชื่อ": {
+                                    "query": q
+                                }
+                            }
+                        },
+                        {
+                            "match": {
+                                "ชื่อ": {
+                                    "query": q,
+                                    "fuzziness": "AUTO"  # เปิดใช้งาน Fuzzy Search
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "_source": ["ชื่อ"],
+            "size": 10
+        })
+
+        suggestions = [hit["_source"].get("ชื่อ", "N/A") for hit in response['hits']['hits']]
+        return {"suggestions": suggestions}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 

@@ -42,7 +42,7 @@ function Search() {
               <th>หน่วย</th>
               <th>Total [kg CO2eq/unit]</th>
               <th>ข้อมูลอ้างอิง</th>
-              <th>Description</th>
+              <th>รายละเอียด</th>
             </tr>
           </thead>
           <tbody>
@@ -53,7 +53,7 @@ function Search() {
                 <td>{item.หน่วย || 'N/A'}</td>
                 <td>{item['Total [kg CO2eq/unit]'] || 'N/A'}</td>
                 <td>{item['ข้อมูลอ้างอิง'] || 'N/A'}</td>
-                <td>{item['Description'] || 'N/A'}</td>
+                <td>{item.รายละเอียด || 'N/A'}</td>
               </tr>
             ))}
           </tbody>
@@ -64,6 +64,8 @@ function Search() {
 }
 
 export default Search;
+
+
 // CFO
 // import React, { useState } from 'react';
 // import { searchData } from '../api/api';
