@@ -8,31 +8,26 @@ const AutocompleteSearch = () => {
   const [results, setResults] = useState([]);
   const [error, setError] = useState(null);
   const [isFocused, setIsFocused] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  const handleSearch = useCallback(async (searchQuery) => {
-    try {
-      const response = await searchData(searchQuery || query);
-      setResults(response.data || []);
-      setError(null);
-    } catch (err) {
-      console.error('Search Error:', err);
-      setError('Failed to fetch search results');
-      setResults([]);
-    }
-  }, [query]); // ✅ Stable Dependency
-
+  // โหลดข้อมูลเริ่มต้น
   useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      if (query.trim() !== '') {
-        handleSearch(query);
-      } else {
-        setResults([]);
+    const fetchInitialData = async () => {
+      try {
+        const response = await searchData('');
+        setResults(response.data || []);
+      } catch (err) {
+        console.error('Initial Load Error:', err);
+        setError('Failed to load initial data');
+      } finally {
+        setIsInitialLoad(false);
       }
-    }, 500); // 500ms delay
+    };
 
-    return () => clearTimeout(delayDebounceFn);
-  }, [query, handleSearch]); // ✅ handleSearch Stable
+    fetchInitialData();
+  }, []);
 
+  // จัดการการเปลี่ยนแปลงใน Input
   const handleChange = async (e) => {
     const value = e.target.value;
     setQuery(value);
@@ -47,69 +42,157 @@ const AutocompleteSearch = () => {
       }
     } else {
       setSuggestions([]);
-      setResults([]);
+      await handleSearch('');
     }
   };
 
+  // เลือกคำแนะนำ
   const handleSelectSuggestion = async (suggestion) => {
     setQuery(suggestion);
     setSuggestions([]);
     await handleSearch(suggestion);
   };
 
+  // ค้นหา
+  const handleSearch = useCallback(async (searchQuery) => {
+    try {
+      const response = await searchData(searchQuery || query);
+      setResults(response.data || []);
+      setError(null);
+    } catch (err) {
+      console.error('Search Error:', err);
+      setError('Failed to fetch search results');
+      setResults([]);
+    }
+  }, [query]);
+
+  // โหลดข้อมูลทั้งหมดหาก Query ว่าง
+  useEffect(() => {
+    if (query.trim() === '') {
+      handleSearch('');
+    }
+  }, [query, handleSearch]);
+
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>🔍 Autocomplete Search</h1>
-      <div style={{ position: 'relative' }}>
-        <input
-          type="text"
-          placeholder="Type to search..."
-          value={query}
-          onChange={handleChange}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-          style={{
-            width: '300px',
-            padding: '8px',
-            borderRadius: '4px',
-            border: '1px solid #ccc'
-          }}
-        />
+    <div style={styles.container}>
+      <div style={styles.searchBoxContainer}>
+        <div style={styles.searchWrapper}>
+          <span style={styles.searchIcon}>🔍</span>
+          <input
+            type="text"
+            placeholder="Type for search..."
+            value={query}
+            onChange={handleChange}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+            style={styles.searchBox}
+          />
+        </div>
+        {/* แสดงคำแนะนำ */}
         {isFocused && suggestions.length > 0 && (
-          <ul style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            width: '300px',
-            backgroundColor: '#fff',
-            border: '1px solid #ccc',
-            listStyleType: 'none',
-            margin: 0,
-            padding: 0,
-            maxHeight: '200px',
-            overflowY: 'auto',
-            zIndex: 1000
-          }}>
-            {suggestions.map((suggestion, index) => (
-              <li
-                key={index}
-                style={{
-                  padding: '8px',
-                  cursor: 'pointer',
-                  backgroundColor: '#f9f9f9'
-                }}
-                onMouseDown={() => handleSelectSuggestion(suggestion)}
-              >
-                {suggestion}
-              </li>
-            ))}
-          </ul>
+          <div style={styles.suggestionsBox}>
+            <ul style={styles.suggestionsList}>
+              {suggestions.map((suggestion, index) => (
+                <li
+                  key={index}
+                  style={styles.suggestionItem}
+                  onMouseDown={() => handleSelectSuggestion(suggestion)}
+                >
+                  {suggestion}
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </div>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {results.length > 0 && <DataTable data={results} />}
+
+      {/* แสดง Error */}
+      {error && <p style={styles.error}>{error}</p>}
+
+      {/* แสดงสถานะการโหลดครั้งแรก */}
+      {isInitialLoad && <p>Loading initial data...</p>}
+
+      {/* แสดงผลลัพธ์ในตาราง */}
+      {results.length > 0 ? (
+        <div style={styles.tableWrapper}>
+          <DataTable data={results} />
+        </div>
+      ) : (
+        <p>No data available</p>
+      )}
     </div>
   );
+};
+
+const styles = {
+  container: {
+    padding: '40px 20px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    backgroundColor: '#f9fafc',
+  },
+  searchBoxContainer: {
+    width: '80%',
+    maxWidth: '800px',
+    marginBottom: '20px',
+    position: 'relative',
+  },
+  searchWrapper: {
+    display: 'flex',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    border: '1px solid #ccc',
+    borderRadius: '8px',
+    overflow: 'hidden',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+  },
+  searchIcon: {
+    padding: '0 10px',
+    fontSize: '1.2rem',
+    color: '#888',
+  },
+  searchBox: {
+    width: '100%',
+    padding: '12px 15px',
+    fontSize: '1rem',
+    border: 'none',
+    outline: 'none',
+  },
+  suggestionsBox: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    width: '100%',
+    backgroundColor: '#fff',
+    border: '1px solid #ccc',
+    borderRadius: '8px',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    marginTop: '4px',
+    maxHeight: '300px',
+    overflowY: 'auto',
+    zIndex: 1000,
+  },
+  suggestionsList: {
+    listStyle: 'none',
+    margin: 0,
+    padding: 0,
+  },
+  suggestionItem: {
+    padding: '12px',
+    cursor: 'pointer',
+    borderBottom: '1px solid #e0e0e0',
+  },
+  error: {
+    color: 'red',
+    marginTop: '10px',
+  },
+  tableWrapper: {
+    width: '100%',
+    maxWidth: '1000px',
+    marginTop: '20px',
+    overflowX: 'auto',
+  },
 };
 
 export default AutocompleteSearch;

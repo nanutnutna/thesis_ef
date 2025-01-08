@@ -137,9 +137,18 @@ async def index_document(doc: dict):
     return {"message": "Document indexed successfully", "id": response['_id']}
 
 @router.get("/search-data/")
-async def search(q: str = Query(..., description="Search query in Thai or English")):
+async def search(q: str = Query(None, description="Search query in Thai or English")):
     try:
-        response = es.search(index=INDEX_NAME, body={
+        if not q:
+            response = es.search(index=INDEX_NAME, body={
+            "query": {
+                "match_all":{}
+            },
+            "size":1000
+            })
+            
+        else:
+            response = es.search(index=INDEX_NAME, body={
             "query": {
                 "multi_match": {
                     "query": q,
@@ -153,15 +162,16 @@ async def search(q: str = Query(..., description="Search query in Thai or Englis
         seen_ids = set()
         for hit in response['hits']['hits']:
             if hit["_id"] not in seen_ids:
-                unique_results.append({
-                    "id": hit["_id"],
-                    "ลำดับ": hit["_source"].get("ลำดับ", "N/A"),
-                    "ชื่อ": hit["_source"].get("ชื่อ", "N/A"),
-                    "หน่วย": hit["_source"].get("หน่วย", "N/A"),
-                    "Total [kg CO2eq/unit]": hit["_source"].get("Total [kg CO2eq/unit]", "N/A"),
-                    "ข้อมูลอ้างอิง": hit["_source"].get("ข้อมูลอ้างอิง", "N/A"),
-                    "Description": hit["_source"].get("Description", "N/A")
-                })
+                unique_results.append(hit["_source"])
+                # unique_results.append({
+                #     "id": hit["_id"],
+                #     "ลำดับ": hit["_source"].get("ลำดับ", "N/A"),
+                #     "ชื่อ": hit["_source"].get("ชื่อ", "N/A"),
+                #     "หน่วย": hit["_source"].get("หน่วย", "N/A"),
+                #     "Total [kg CO2eq/unit]": hit["_source"].get("Total [kg CO2eq/unit]", "N/A"),
+                #     "ข้อมูลอ้างอิง": hit["_source"].get("ข้อมูลอ้างอิง", "N/A"),
+                #     "Description": hit["_source"].get("Description", "N/A")
+                # })
                 seen_ids.add(hit["_id"])
     except Exception as e:
         return {"error": str(e)}

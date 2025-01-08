@@ -1,82 +1,60 @@
-// CFO
 import React from 'react';
 
-const DataTable = ({ data }) => (
-  <div style={{ marginTop: '20px' }}>
-    <table border="1" style={{ width: '100%', textAlign: 'left' }}>
-      <thead>
-        <tr>
-          <th>ลำดับ</th>
-          <th>ชื่อ</th>
-          <th>หน่วย</th>
-          <th>Total [kg CO2eq/unit]</th>
-          <th>ข้อมูลอ้างอิง</th>
-          <th>รายละเอียด</th>
-        </tr>
-      </thead>
-      <tbody>
-        {data.map((item, index) => (
-          <tr key={index}>
-            <td>{item.ลำดับ || 'N/A'}</td>
-            <td>{item.ชื่อ || 'N/A'}</td>
-            <td>{item.หน่วย || 'N/A'}</td>
-            <td>{item['Total [kg CO2eq/unit]'] || 'N/A'}</td>
-            <td>{item['ข้อมูลอ้างอิง'] || 'N/A'}</td>
-            <td>{item.รายละเอียด || 'N/A'}</td>
+const DataTable = ({ data }) => {
+  return (
+    <div style={styles.tableContainer}>
+      <table style={styles.table}>
+        <thead>
+          <tr>
+            <th style={styles.header}>ชื่อ</th>
+            <th style={styles.header}>หน่วย</th>
+            <th style={styles.header}>Total [kg CO2eq/unit]</th>
+            <th style={styles.header}>ข้อมูลอ้างอิง</th>
+            <th style={styles.header}>Description</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-);
+        </thead>
+        <tbody>
+          {data.map((item, index) => (
+            <tr key={index} style={styles.row}>
+              <td style={styles.cell}>{item.ชื่อ || '-'}</td>
+              <td style={styles.cell}>{item.หน่วย || '-'}</td>
+              <td style={styles.cell}>{item['Total [kg CO2eq/unit]'] || '-'}</td>
+              <td style={styles.cell}>{item.ข้อมูลอ้างอิง || '-'}</td>
+              <td style={styles.cell}>{item.Description || '-'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+const styles = {
+  tableContainer: {
+    overflowX: 'auto',
+    marginTop: '20px',
+    border: '1px solid #ccc',
+    borderRadius: '8px',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+  },
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse',
+  },
+  header: {
+    backgroundColor: '#f4f4f4',
+    fontWeight: 'bold',
+    textAlign: 'left',
+    padding: '12px',
+    borderBottom: '1px solid #ddd',
+  },
+  row: {
+    borderBottom: '1px solid #eee',
+  },
+  cell: {
+    padding: '12px',
+    textAlign: 'left',
+  },
+};
 
 export default DataTable;
-
-
-
-
-
-
-// CFP
-// import React from 'react';
-
-// const DataTable = ({ results }) => {
-//   return (
-//     <table border="1" style={{ width: '100%', marginTop: '20px', textAlign: 'left' }}>
-//       <thead>
-//         <tr>
-//           <th>กลุ่ม</th>
-//           <th>ลำดับ</th>
-//           <th>ชื่อ</th>
-//           <th>รายละเอียด</th>
-//           <th>หน่วย</th>
-//           <th>ค่าแฟคเตอร์ (kgCO2e)</th>
-//           <th>ข้อมูลอ้างอิง</th>
-//           <th>วันที่อัพเดท</th>
-//         </tr>
-//       </thead>
-//       <tbody>
-//         {results.length > 0 ? (
-//           results.map((item, index) => (
-//             <tr key={index}>
-//               <td>{item.กลุ่ม || 'N/A'}</td>
-//               <td>{item.ลำดับ || 'N/A'}</td>
-//               <td>{item.ชื่อ || 'N/A'}</td>
-//               <td>{item.รายละเอียด || 'N/A'}</td>
-//               <td>{item.หน่วย || 'N/A'}</td>
-//               <td>{item['ค่าแฟคเตอร์ (kgCO2e)'] || 'N/A'}</td>
-//               <td>{item['ข้อมูลอ้างอิง'] || 'N/A'}</td>
-//               <td>{item['วันที่อัพเดท'] || 'N/A'}</td>
-//             </tr>
-//           ))
-//         ) : (
-//           <tr>
-//             <td colSpan="8" style={{ textAlign: 'center' }}>🔍 No results found</td>
-//           </tr>
-//         )}
-//       </tbody>
-//     </table>
-//   );
-// };
-
-// export default DataTable;
