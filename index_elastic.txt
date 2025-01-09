@@ -228,3 +228,78 @@ PUT /ef2
 
 
 ################## factor3 ##################
+
+
+PUT /ef3
+{
+  "settings": {
+    "analysis": {
+      "filter": {
+        "thai_edge_ngram_filter": {
+          "type": "edge_ngram",
+          "min_gram": 1,
+          "max_gram": 20,
+          "token_chars": ["letter", "digit", "whitespace"]
+        }
+      },
+      "analyzer": {
+        "thai_autocomplete_analyzer": {
+          "type": "custom",
+          "tokenizer": "icu_tokenizer",
+          "filter": [
+            "lowercase",
+            "icu_folding",
+            "thai_edge_ngram_filter"
+          ]
+        },
+        "thai_autocomplete_search_analyzer": {
+          "type": "custom",
+          "tokenizer": "icu_tokenizer",
+          "filter": [
+            "lowercase",
+            "icu_folding"
+          ]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "เลขที่ใบรับรอง": {
+        "type": "text",
+        "analyzer": "thai_autocomplete_analyzer",
+        "search_analyzer": "thai_autocomplete_search_analyzer"
+      },
+      "ชื่อ": {
+        "type": "text",
+        "analyzer": "thai_autocomplete_analyzer",
+        "search_analyzer": "thai_autocomplete_search_analyzer"
+      },
+      "รายละเอียด": {
+        "type": "text",
+        "analyzer": "thai_autocomplete_analyzer",
+        "search_analyzer": "thai_autocomplete_search_analyzer"
+      },
+      "กลุ่ม": {
+        "type": "text",
+        "analyzer": "thai_autocomplete_analyzer",
+        "search_analyzer": "thai_autocomplete_search_analyzer"
+      },
+      "วันที่อนุมัติ": {
+        "type": "text"
+      },
+      "ปริมาณ CF": {
+        "type": "text"
+      },
+      "หน่วยการทำงาน": {
+        "type": "text"
+      },
+      "ขอบเขต": {
+        "type": "text"
+      },
+      "img_path": {
+        "type": "text"
+      }
+    }
+  }
+}

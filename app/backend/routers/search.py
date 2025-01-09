@@ -1,9 +1,11 @@
 from fastapi import APIRouter,HTTPException,UploadFile,Query
-from elasticsearch import Elasticsearch
+from fastapi.staticfiles import StaticFiles
+from elasticsearch import Elasticsearch,helpers
 import pandas as pd
 from io import BytesIO
 from schemas import Document
 import numpy as np
+from fastapi.templating import Jinja2Templates
 
 router = APIRouter()
 es = Elasticsearch("https://localhost:9200",
@@ -133,6 +135,20 @@ async def upload_data(file: UploadFile,index_name: str):
                     "วันที่อัพเดท": row.get("วันที่อัพเดท")
                 }
                 es.index(index=index_name,document=document)
+        elif index_name == "ef3":
+            for _,row in df.iterrows():
+                document = {
+                    "เลขที่ใบรับรอง": row.get("เลขที่ใบรับรอง"),
+                    "ชื่อ": row.get("ชื่อ"),
+                    "รายละเอียด": row.get("รายละเอียด"),
+                    "กลุ่ม": row.get("กลุ่ม"),
+                    "วันที่อนุมัติ": row.get("วันที่อนุมัติ"),
+                    "ปริมาณ CF": row.get("ปริมาณ CF"),
+                    "หน่วยการทำงาน": row.get("หน่วยการทำงาน"),
+                    "ขอบเขต": row.get("ขอบเขต"),
+                    "img_path": row.get("img_path")
+                }
+                es.index(index=index_name,document=document)
         else:
             raise HTTPException(status_code=400,detail=f"Index {index_name} is not supported")
     except Exception as e:
@@ -158,9 +174,9 @@ async def index_document(doc: dict):
 
 
 
-######################################## for ef1 CFP(Global) ####################################################
+######################################## ef1 CFP(Global) ####################################################
 @router.get("/search-data_cfp/")
-async def search(q: str = Query(None, description="Search query in Thai or English")):
+async def search_cfp(q: str = Query(None, description="Search query in Thai or English")):
     try:
         if not q:
             # กรณีไม่มีคำค้นหา แสดงข้อมูลทั้งหมด
@@ -250,13 +266,11 @@ async def autocomplete_cfo(q: str = Query(..., description="Autocomplete query")
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-################################################################################################################################################################
 
 
-
-######################################## for ef2 CFO ########################################
+######################################## ef2 CFO ########################################
 @router.get("/search-data_cfo/")
-async def search(q: str = Query(None, description="Search query in Thai or English")):
+async def search_cfo(q: str = Query(None, description="Search query in Thai or English")):
     try:
         if not q:
             # กรณีไม่มีคำค้นหา แสดงข้อมูลทั้งหมด
@@ -349,117 +363,6 @@ async def autocomplete_cfo(q: str = Query(..., description="Autocomplete query")
 
 
 
-# @router.get("/autocomplete/")
-# async def autocomplete(q: str = Query(..., description="Autocomplete query")):
-#     try:
-#         response = es.search(index=INDEX_NAME, body={
-#             "query": {
-#                 "match_phrase_prefix": {
-#                     "ชื่อ": {
-#                         "query": q
-#                     }
-#                 }
-#             },
-#             "_source": ["ชื่อ"],
-#             "size": 10
-#         })
+######################################## ef3 Carbon label products ####################################################
+#router.mount("/static", StaticFiles(directory="./static"), name="static")
 
-#         suggestions = [hit["_source"].get("ชื่อ", "N/A") for hit in response['hits']['hits']]
-#         return {"suggestions": suggestions}
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
-
-
-# @router.get("/autocomplete/")
-# async def autocomplete(q: str = Query(..., description="Search autocomplete query")):
-#     try:
-#         response = es.search(index=INDEX_NAME, body={
-#             "suggest": {
-#                 "autocomplete-suggest": {
-#                     "prefix": q,
-#                     "completion": {
-#                         "field": "ชื่อ",
-#                         "fuzzy": {
-#                             "fuzziness": "auto"
-#                         }
-#                     }
-#                 }
-#             }
-#         })
-
-#         suggestions = []
-#         for option in response['suggest']['autocomplete-suggest'][0]['options']:
-#             suggestions.append(option['text'])
-
-#         return {"suggestions": suggestions}
-
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
-
-
-
-
-############# CFP ########
-# @router.post("/upload-data/")
-# async def upload_data(file: UploadFile):
-#     if not file.filename.endswith('.csv'):
-#         raise HTTPException(status_code=400,detail="Only CSV file")
-
-#     content = await file.read()
-#     if file.filename.endswith(".csv"):
-#         df = pd.read_csv(BytesIO(content))
-
-#     df.replace({np.nan: None}, inplace=True)
-    
-#     for _,row in df.iterrows():
-#         document = {
-#             "กลุ่ม": row["กลุ่ม"],
-#             "ลำดับ": row["ลำดับ"],
-#             "ชื่อ": row["ชื่อ"],
-#             "รายละเอียด": row["รายละเอียด"],
-#             "หน่วย": row["หน่วย"],
-#             "ค่าแฟคเตอร์ (kgCO2e)": row["ค่าแฟคเตอร์ (kgCO2e)"],
-#             "ข้อมูลอ้างอิง": row["ข้อมูลอ้างอิง"],
-#             "วันที่อัพเดท": row["วันที่อัพเดท"]           
-#         }
-#         es.index(index=INDEX_NAME,document=document)
-
-#     return {"message":"Datas uploaded successfully"}
-
-# @router.post("/index")
-# async def index_document(doc: Document):
-#     response = es.index(index=INDEX_NAME,document=doc.dict())
-#     return {"message": "Document indexed successfully", "id":response['_id']}
-
-# @router.get("/search-data/")
-# async def search(q: str = Query(..., description="Search query in Thai or English")):
-#     try:
-#         response = es.search(index=INDEX_NAME,body={
-#             "query":{
-#                 "multi_match": {
-#                     "query":q,
-#                     "fields": ["ชื่อ", "รายละเอียด", "กลุ่ม","ข้อมูลอ้างอิง"],
-#                     "operator": "and"
-#                 }
-#             }
-#         })
-
-#         unique_results = []
-#         seen_ids = set()
-#         for hit in response['hits']['hits']:
-#             if hit["_id"] not in seen_ids:
-#                 unique_results.append({
-#                     "id": hit["_id"],
-#                     "กลุ่ม": hit["_source"].get("กลุ่ม", "N/A"),
-#                     "ลำดับ": hit["_source"].get("ลำดับ", "N/A"),
-#                     "ชื่อ": hit["_source"].get("ชื่อ", "N/A"),
-#                     "รายละเอียด": hit["_source"].get("รายละเอียด", "N/A"),
-#                     "หน่วย": hit["_source"].get("หน่วย", "N/A"),
-#                     "ค่าแฟคเตอร์ (kgCO2e)": hit["_source"].get("ค่าแฟคเตอร์ (kgCO2e)", "N/A"),
-#                     "ข้อมูลอ้างอิง": hit["_source"].get("ข้อมูลอ้างอิง", "N/A"),
-#                     "วันที่อัพเดท": hit["_source"].get("วันที่อัพเดท", "N/A")
-#                 })
-#                 seen_ids.add(hit["_id"])
-#     except Exception as e:
-#         return {"error":str(e)}
-#     return unique_results
