@@ -1,0 +1,230 @@
+################## factor1 ##################
+#PUT /index_new
+index_settings = {
+  "settings": {
+    "analysis": {
+      "filter": {
+        "thai_edge_ngram_filter": {
+          "type": "edge_ngram",
+          "min_gram": 1,
+          "max_gram": 20,
+          "token_chars": ["letter", "digit", "whitespace"]
+        }
+      },
+      "analyzer": {
+        "thai_autocomplete_analyzer": {
+          "type": "custom",
+          "tokenizer": "icu_tokenizer",
+          "filter": [
+            "lowercase",
+            "icu_folding",
+            "thai_edge_ngram_filter"
+          ]
+        },
+        "thai_autocomplete_search_analyzer": {
+          "type": "custom",
+          "tokenizer": "icu_tokenizer",
+          "filter": [
+            "lowercase",
+            "icu_folding"
+          ]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "กลุ่ม": {
+        "type": "text",
+        "analyzer": "thai_autocomplete_analyzer",
+        "search_analyzer": "thai_autocomplete_search_analyzer"
+      },
+      "ลำดับ": {
+        "type": "float"
+      },
+      "ชื่อ": {
+        "type": "text",
+        "analyzer": "thai_autocomplete_analyzer",
+        "search_analyzer": "thai_autocomplete_search_analyzer"
+      },
+      "รายละเอียด": {
+        "type": "text",
+        "analyzer": "thai_autocomplete_analyzer",
+        "search_analyzer": "thai_autocomplete_search_analyzer"
+      },
+      "หน่วย": {
+        "type": "text"
+      },
+      "ค่าแฟคเตอร์ (kgCO2e)": {
+        "type": "float"
+      },
+      "ข้อมูลอ้างอิง": {
+        "type": "text",
+        "analyzer": "thai_autocomplete_analyzer",
+        "search_analyzer": "thai_autocomplete_search_analyzer"
+      },
+      "วันที่อัพเดท": {
+        "type": "text"
+      }
+    }
+  }
+}
+
+################## factor2 ##################
+
+index_settings = {
+    "settings": {
+        "analysis": {
+            "filter": {
+                "thai_english_synonym_filter": {
+                    "type": "synonym",
+                    "synonyms_path": "analysis/synonyms.txt"
+                },
+                "edge_ngram_filter": {
+                    "type": "edge_ngram",
+                    "min_gram": 1,
+                    "max_gram": 20,
+                    "token_chars": ["letter", "digit", "whitespace"]
+                }
+            },
+            "analyzer": {
+                "autocomplete_index_analyzer": {
+                    "type": "custom",
+                    "tokenizer": "standard",
+                    "filter": [
+                        "lowercase",
+                        "icu_folding",
+                        "edge_ngram_filter"
+                    ]
+                },
+                "autocomplete_search_analyzer": {
+                    "type": "custom",
+                    "tokenizer": "standard",
+                    "filter": [
+                        "lowercase",
+                        "icu_folding"
+                    ]
+                },
+                "thai_synonym_analyzer": {
+                    "type": "custom",
+                    "tokenizer": "standard",
+                    "filter": [
+                        "lowercase",
+                        "icu_folding",
+                        "thai_english_synonym_filter"
+                    ]
+                }
+            }
+        }
+    },
+    "mappings": {
+        "properties": {
+            "ลำดับ": {"type": "float"},
+            "ชื่อ": {
+                "type": "text",
+                "analyzer": "autocomplete_index_analyzer",
+                "search_analyzer": "thai_synonym_analyzer"
+            },
+            "หน่วย": {"type": "text"},
+            "Total [kg CO2eq/unit]": {"type": "float"},
+            "ข้อมูลอ้างอิง": {
+                "type": "text",
+                "analyzer": "thai_synonym_analyzer"
+            },
+            "Description": {
+                "type": "text",
+                "analyzer": "thai_synonym_analyzer"
+            }
+        }
+    }
+}
+
+
+----------------------new------
+PUT /ef2
+{
+    "settings": {
+        "analysis": {
+            "filter": {
+                "thai_english_synonym_filter": {
+                    "type": "synonym",
+                    "synonyms_path": "analysis/synonyms.txt"
+                },
+                "edge_ngram_filter": {
+                    "type": "edge_ngram",
+                    "min_gram": 1,
+                    "max_gram": 20,
+                    "token_chars": ["letter", "digit", "whitespace"]
+                }
+            },
+            "analyzer": {
+                "autocomplete_index_analyzer": {
+                    "type": "custom",
+                    "tokenizer": "standard",
+                    "filter": [
+                        "lowercase",
+                        "icu_folding",
+                        "edge_ngram_filter"
+                    ]
+                },
+                "autocomplete_search_analyzer": {
+                    "type": "custom",
+                    "tokenizer": "standard",
+                    "filter": [
+                        "lowercase",
+                        "icu_folding"
+                    ]
+                },
+                "thai_synonym_analyzer": {
+                    "type": "custom",
+                    "tokenizer": "standard",
+                    "filter": [
+                        "lowercase",
+                        "icu_folding",
+                        "thai_english_synonym_filter"
+                    ]
+                }
+            }
+        }
+    },
+  "mappings": {
+    "properties": {
+      "กลุ่ม": {
+        "type": "text",
+        "analyzer": "autocomplete_index_analyzer",
+        "search_analyzer": "thai_synonym_analyzer"
+      },
+      "ลำดับ": {
+        "type": "float"
+      },
+      "ชื่อ": {
+        "type": "text",
+        "analyzer": "autocomplete_index_analyzer",
+        "search_analyzer": "thai_synonym_analyzer"
+      },
+      "รายละเอียด": {
+        "type": "text",
+        "analyzer": "autocomplete_index_analyzer",
+        "search_analyzer": "thai_synonym_analyzer"
+      },
+      "หน่วย": {
+        "type": "text"
+      },
+      "ค่าแฟคเตอร์ (kgCO2e)": {
+        "type": "float"
+      },
+      "ข้อมูลอ้างอิง": {
+        "type": "text",
+        "analyzer": "autocomplete_index_analyzer",
+        "search_analyzer": "thai_synonym_analyzer"
+      },
+      "วันที่อัพเดท": {
+        "type": "text"
+      }
+    }
+  }
+}
+
+
+
+################## factor3 ##################

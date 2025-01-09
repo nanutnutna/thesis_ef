@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { fetchAutocomplete, searchData } from '../api/api';
+import { fetchAutocompleteCFO, searchDataCFO } from '../api/api';
 import DataTable from './DataTable';
 
-const AutocompleteSearch = () => {
+const AutocompleteSearchCFO = () => {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [results, setResults] = useState([]);
@@ -14,7 +14,7 @@ const AutocompleteSearch = () => {
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const response = await searchData('');
+        const response = await searchDataCFO('');
         setResults(response.data || []);
       } catch (err) {
         console.error('Initial Load Error:', err);
@@ -34,7 +34,7 @@ const AutocompleteSearch = () => {
 
     if (value.trim() !== '') {
       try {
-        const response = await fetchAutocomplete(value);
+        const response = await fetchAutocompleteCFO(value);
         setSuggestions(response.data.suggestions || []);
       } catch (err) {
         console.error('Autocomplete Error:', err);
@@ -56,7 +56,7 @@ const AutocompleteSearch = () => {
   // ค้นหา
   const handleSearch = useCallback(async (searchQuery) => {
     try {
-      const response = await searchData(searchQuery || query);
+      const response = await searchDataCFO(searchQuery || query);
       setResults(response.data || []);
       setError(null);
     } catch (err) {
@@ -76,6 +76,7 @@ const AutocompleteSearch = () => {
   return (
     <div style={styles.container}>
       <div style={styles.searchBoxContainer}>
+        <h1 style={styles.header}>Emission Factor (CFO: Carbon Footprint for Organization)</h1>
         <div style={styles.searchWrapper}>
           <span style={styles.searchIcon}>🔍</span>
           <input
@@ -125,6 +126,13 @@ const AutocompleteSearch = () => {
 };
 
 const styles = {
+  header: {
+    fontSize: '24px',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: '20px',
+    color: '#333',
+  },
   container: {
     padding: '40px 20px',
     display: 'flex',
@@ -195,4 +203,4 @@ const styles = {
   },
 };
 
-export default AutocompleteSearch;
+export default AutocompleteSearchCFO;

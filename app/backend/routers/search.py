@@ -11,91 +11,90 @@ es = Elasticsearch("https://localhost:9200",
                    ca_certs="C:/Users/Nattapot/Documents/elasticsearch-8.17.0/config/certs/http_ca.crt"
 )
 
-INDEX_NAME = "document_data"
+INDEX_NAME = "ef1"
 
-index_settings = {
-    "settings": {
-        "analysis": {
-            "filter": {
-                "thai_english_synonym_filter": {
-                    "type": "synonym",
-                    "synonyms_path": "analysis/synonyms.txt"
-                },
-                "edge_ngram_filter": {
-                    "type": "edge_ngram",
-                    "min_gram": 1,
-                    "max_gram": 20,
-                    "token_chars": ["letter", "digit", "whitespace"]
-                }
-            },
-            "analyzer": {
-                "autocomplete_index_analyzer": {
-                    "type": "custom",
-                    "tokenizer": "standard",
-                    "filter": [
-                        "lowercase",
-                        "icu_folding",
-                        "edge_ngram_filter"
-                    ]
-                },
-                "autocomplete_search_analyzer": {
-                    "type": "custom",
-                    "tokenizer": "standard",
-                    "filter": [
-                        "lowercase",
-                        "icu_folding"
-                    ]
-                },
-                "thai_synonym_analyzer": {
-                    "type": "custom",
-                    "tokenizer": "standard",
-                    "filter": [
-                        "lowercase",
-                        "icu_folding",
-                        "thai_english_synonym_filter"
-                    ]
-                }
-            }
-        }
-    },
-    "mappings": {
-        "properties": {
-            "ลำดับ": {"type": "float"},
-            "ชื่อ": {
-                "type": "text",
-                "analyzer": "autocomplete_index_analyzer",
-                "search_analyzer": "thai_synonym_analyzer"
-            },
-            "หน่วย": {"type": "text"},
-            "Total [kg CO2eq/unit]": {"type": "float"},
-            "ข้อมูลอ้างอิง": {
-                "type": "text",
-                "analyzer": "thai_synonym_analyzer"
-            },
-            "Description": {
-                "type": "text",
-                "analyzer": "thai_synonym_analyzer"
-            }
-        }
-    }
-}
-
-
-if es.indices.exists(index=INDEX_NAME):
-    print(f"Deleting existing index: {INDEX_NAME}")
-    es.indices.delete(index=INDEX_NAME)
-
-try:
-    es.indices.create(index=INDEX_NAME, body=index_settings)
-    print(f"Successfully created index: {INDEX_NAME}")
-except Exception as e:
-    print(f"Error creating index: {e}")
+# index_settings = {
+#     "settings": {
+#         "analysis": {
+#             "filter": {
+#                 "thai_english_synonym_filter": {
+#                     "type": "synonym",
+#                     "synonyms_path": "analysis/synonyms.txt"
+#                 },
+#                 "edge_ngram_filter": {
+#                     "type": "edge_ngram",
+#                     "min_gram": 1,
+#                     "max_gram": 20,
+#                     "token_chars": ["letter", "digit", "whitespace"]
+#                 }
+#             },
+#             "analyzer": {
+#                 "autocomplete_index_analyzer": {
+#                     "type": "custom",
+#                     "tokenizer": "standard",
+#                     "filter": [
+#                         "lowercase",
+#                         "icu_folding",
+#                         "edge_ngram_filter"
+#                     ]
+#                 },
+#                 "autocomplete_search_analyzer": {
+#                     "type": "custom",
+#                     "tokenizer": "standard",
+#                     "filter": [
+#                         "lowercase",
+#                         "icu_folding"
+#                     ]
+#                 },
+#                 "thai_synonym_analyzer": {
+#                     "type": "custom",
+#                     "tokenizer": "standard",
+#                     "filter": [
+#                         "lowercase",
+#                         "icu_folding",
+#                         "thai_english_synonym_filter"
+#                     ]
+#                 }
+#             }
+#         }
+#     },
+#     "mappings": {
+#         "properties": {
+#             "ลำดับ": {"type": "float"},
+#             "ชื่อ": {
+#                 "type": "text",
+#                 "analyzer": "autocomplete_index_analyzer",
+#                 "search_analyzer": "thai_synonym_analyzer"
+#             },
+#             "หน่วย": {"type": "text"},
+#             "Total [kg CO2eq/unit]": {"type": "float"},
+#             "ข้อมูลอ้างอิง": {
+#                 "type": "text",
+#                 "analyzer": "thai_synonym_analyzer"
+#             },
+#             "Description": {
+#                 "type": "text",
+#                 "analyzer": "thai_synonym_analyzer"
+#             }
+#         }
+#     }
+# }
 
 
+# if es.indices.exists(index=INDEX_NAME):
+#     print(f"Deleting existing index: {INDEX_NAME}")
+#     es.indices.delete(index=INDEX_NAME)
 
-############# CFO #######
-@router.post("/upload-data/")
-async def upload_data(file: UploadFile):
+# try:
+#     es.indices.create(index=INDEX_NAME, body=index_settings)
+#     print(f"Successfully created index: {INDEX_NAME}")
+# except Exception as e:
+#     print(f"Error creating index: {e}")
+
+
+
+@router.post("/upload-data/{index_name}")
+async def upload_data(file: UploadFile,index_name: str):
     if not file.filename.endswith('.csv'):
         raise HTTPException(status_code=400, detail="Only CSV files are allowed")
     
@@ -109,74 +108,245 @@ async def upload_data(file: UploadFile):
     df.replace({np.nan: None}, inplace=True)
     
     # Insert documents into Elasticsearch
-    for _, row in df.iterrows():
-        document = {
-            "ลำดับ": row.get("ลำดับ"),
-            "ชื่อ": row.get("ชื่อ"),
-            "หน่วย": row.get("หน่วย"),
-            "Total [kg CO2eq/unit]": row.get("Total [kg CO2eq/unit]"),
-            "ข้อมูลอ้างอิง": row.get("ข้อมูลอ้างอิง"),
-            "Description": row.get("Description")
-        }
-        es.index(index=INDEX_NAME, document=document)
-    
+    try:
+        if index_name == "document_data":
+            for _, row in df.iterrows():
+                document = {
+                    "ลำดับ": row.get("ลำดับ"),
+                    "ชื่อ": row.get("ชื่อ"),
+                    "หน่วย": row.get("หน่วย"),
+                    "Total [kg CO2eq/unit]": row.get("Total [kg CO2eq/unit]"),
+                    "ข้อมูลอ้างอิง": row.get("ข้อมูลอ้างอิง"),
+                    "Description": row.get("Description")
+                }
+                es.index(index=index_name, document=document)
+        elif index_name in ["ef1","ef2"]:
+            for _,row in df.iterrows():
+                document = {
+                    "กลุ่ม": row.get("กลุ่ม"),
+                    "ลำดับ": row.get("ลำดับ"),
+                    "ชื่อ": row.get("ชื่อ"),
+                    "รายละเอียด": row.get("รายละเอียด"),
+                    "หน่วย": row.get("หน่วย"),
+                    "ค่าแฟคเตอร์ (kgCO2e)": row.get("ค่าแฟคเตอร์ (kgCO2e)"),
+                    "ข้อมูลอ้างอิง": row.get("ข้อมูลอ้างอิง"),
+                    "วันที่อัพเดท": row.get("วันที่อัพเดท")
+                }
+                es.index(index=index_name,document=document)
+        else:
+            raise HTTPException(status_code=400,detail=f"Index {index_name} is not supported")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload data: {str(e)}")
+        
     return {"message": "Data uploaded successfully"}
 
 
 @router.post("/index/")
 async def index_document(doc: dict):
     document = {
+        "กลุ่ม": doc.get("กลุ่ม"),
         "ลำดับ": doc.get("ลำดับ"),
         "ชื่อ": doc.get("ชื่อ"),
+        "รายละเอียด": doc.get("รายละเอียด"),
         "หน่วย": doc.get("หน่วย"),
-        "Total [kg CO2eq/unit]": doc.get("Total [kg CO2eq/unit]"),
+        "ค่าแฟคเตอร์ (kgCO2e)": doc.get("ค่าแฟคเตอร์ (kgCO2e)"),
         "ข้อมูลอ้างอิง": doc.get("ข้อมูลอ้างอิง"),
-        "Description": doc.get("Description")
+        "วันที่อัพเดท": doc.get("วันที่อัพเดท")
     }
     response = es.index(index=INDEX_NAME, document=document)
     return {"message": "Document indexed successfully", "id": response['_id']}
 
-@router.get("/search-data/")
+
+
+######################################## for ef1 CFP(Global) ####################################################
+@router.get("/search-data_cfp/")
 async def search(q: str = Query(None, description="Search query in Thai or English")):
     try:
         if not q:
-            response = es.search(index=INDEX_NAME, body={
-            "query": {
-                "match_all":{}
-            },
-            "size":1000
+            # กรณีไม่มีคำค้นหา แสดงข้อมูลทั้งหมด
+            response = es.search(index="ef1", body={
+                "query": {
+                    "match_all": {}
+                },
+                "size": 1000
             })
-            
         else:
-            response = es.search(index=INDEX_NAME, body={
-            "query": {
-                "multi_match": {
-                    "query": q,
-                    "fields": ["ชื่อ", "Description", "ข้อมูลอ้างอิง"],
-                    "operator": "and" #"analyzer": "thai_english_analyzer"
+            # กรณีมีคำค้นหา
+            response = es.search(index="ef1", body={
+                "query": {
+                    "multi_match": {
+                        "query": q,
+                        "fields": ["ชื่อ", "รายละเอียด","กลุ่ม"],
+                        "type": "best_fields",
+                        "operator": "and",
+                        "analyzer": "thai_autocomplete_search_analyzer"
+                    }
                 }
-            }
-        })
+            })
 
+        # จัดการผลลัพธ์
         unique_results = []
         seen_ids = set()
         for hit in response['hits']['hits']:
             if hit["_id"] not in seen_ids:
                 unique_results.append(hit["_source"])
-                # unique_results.append({
-                #     "id": hit["_id"],
-                #     "ลำดับ": hit["_source"].get("ลำดับ", "N/A"),
-                #     "ชื่อ": hit["_source"].get("ชื่อ", "N/A"),
-                #     "หน่วย": hit["_source"].get("หน่วย", "N/A"),
-                #     "Total [kg CO2eq/unit]": hit["_source"].get("Total [kg CO2eq/unit]", "N/A"),
-                #     "ข้อมูลอ้างอิง": hit["_source"].get("ข้อมูลอ้างอิง", "N/A"),
-                #     "Description": hit["_source"].get("Description", "N/A")
-                # })
                 seen_ids.add(hit["_id"])
+                
     except Exception as e:
         return {"error": str(e)}
     
     return unique_results
+
+
+@router.get("/autocomplete_cfp/")
+async def autocomplete_cfo(q: str = Query(..., description="Autocomplete query")):
+    """
+    Autocomplete พร้อม Fuzzy Search
+    """
+    try:
+        response = es.search(index="ef1", body={
+            "query": {
+                "bool": {
+                    "should": [
+                        {
+                            "match_phrase_prefix": {
+                                "ชื่อ": {
+                                    "query": q
+                                }
+                            }
+                        },
+                        {
+                            "match": {
+                                "ชื่อ": {
+                                    "query": q,
+                                    "fuzziness": "AUTO"  # เปิดใช้งาน Fuzzy Search
+                                }
+                            }
+                        },
+                        {
+                            "match_phrase_prefix": { ### เพิ่มฟิลด์รายละเอียดด้วย
+                                "รายละเอียด": {
+                                    "query": q
+                                }
+                            }
+                        },
+                        {
+                            "match": {
+                                "รายละเอียด": {
+                                    "query": q,
+                                    "fuzziness": "AUTO"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "_source": ["ชื่อ","รายละเอียด"], ##เพิ่มรายละเอียด
+            "size": 10
+        })
+
+        suggestions = [hit["_source"].get("ชื่อ", "N/A") for hit in response['hits']['hits']]
+        return {"suggestions": suggestions}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+################################################################################################################################################################
+
+
+
+######################################## for ef2 CFO ########################################
+@router.get("/search-data_cfo/")
+async def search(q: str = Query(None, description="Search query in Thai or English")):
+    try:
+        if not q:
+            # กรณีไม่มีคำค้นหา แสดงข้อมูลทั้งหมด
+            response = es.search(index="ef2", body={
+                "query": {
+                    "match_all": {}
+                },
+                "size": 1000
+            })
+        else:
+            # กรณีมีคำค้นหา
+            response = es.search(index="ef2", body={
+                "query": {
+                    "multi_match": {
+                        "query": q,
+                        "fields": ["ชื่อ", "รายละเอียด","กลุ่ม"],
+                        "type": "best_fields",
+                        "operator": "and"
+                        #"analyzer": "thai_autocomplete_search_analyzer"
+                    }
+                }
+            })
+
+        # จัดการผลลัพธ์
+        unique_results = []
+        seen_ids = set()
+        for hit in response['hits']['hits']:
+            if hit["_id"] not in seen_ids:
+                unique_results.append(hit["_source"])
+                seen_ids.add(hit["_id"])
+                
+    except Exception as e:
+        return {"error": str(e)}
+    
+    return unique_results
+
+
+@router.get("/autocomplete_cfo/")
+async def autocomplete_cfo(q: str = Query(..., description="Autocomplete query")):
+    """
+    Autocomplete พร้อม Fuzzy Search
+    """
+    try:
+        response = es.search(index="ef2", body={
+            "query": {
+                "bool": {
+                    "should": [
+                        {
+                            "match_phrase_prefix": {
+                                "ชื่อ": {
+                                    "query": q
+                                }
+                            }
+                        },
+                        {
+                            "match": {
+                                "ชื่อ": {
+                                    "query": q,
+                                    "fuzziness": "AUTO"  # เปิดใช้งาน Fuzzy Search
+                                }
+                            }
+                        },
+                        {
+                            "match_phrase_prefix": { ### เพิ่มฟิลด์รายละเอียดด้วย
+                                "รายละเอียด": {
+                                    "query": q
+                                }
+                            }
+                        },
+                        {
+                            "match": {
+                                "รายละเอียด": {
+                                    "query": q,
+                                    "fuzziness": "AUTO"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "_source": ["ชื่อ","รายละเอียด"], ##เพิ่มรายละเอียด
+            "size": 10
+        })
+
+        suggestions = [hit["_source"].get("ชื่อ", "N/A") for hit in response['hits']['hits']]
+        return {"suggestions": suggestions}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 # @router.get("/autocomplete/")
@@ -226,43 +396,6 @@ async def search(q: str = Query(None, description="Search query in Thai or Engli
 #     except Exception as e:
 #         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/autocomplete/")
-async def autocomplete(q: str = Query(..., description="Autocomplete query")):
-    """
-    Autocomplete พร้อม Fuzzy Search
-    """
-    try:
-        response = es.search(index=INDEX_NAME, body={
-            "query": {
-                "bool": {
-                    "should": [
-                        {
-                            "match_phrase_prefix": {
-                                "ชื่อ": {
-                                    "query": q
-                                }
-                            }
-                        },
-                        {
-                            "match": {
-                                "ชื่อ": {
-                                    "query": q,
-                                    "fuzziness": "AUTO"  # เปิดใช้งาน Fuzzy Search
-                                }
-                            }
-                        }
-                    ]
-                }
-            },
-            "_source": ["ชื่อ"],
-            "size": 10
-        })
-
-        suggestions = [hit["_source"].get("ชื่อ", "N/A") for hit in response['hits']['hits']]
-        return {"suggestions": suggestions}
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 

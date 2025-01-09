@@ -4,7 +4,8 @@ import Home from './pages/Home';
 import Search from './pages/Search';
 import RealTimeSearch from './pages/RealTimeSearch';
 import Upload from './pages/Upload';
-import AutocompleteSearchPage from './pages/AutocompleteSearchPage';
+import SearchPageCFP from './pages/SearchPageCFP';
+import SearchPageCFO from './pages/SearchPageCFO';
 
 function App() {
   return (
@@ -13,7 +14,8 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/search" element={<Search />} />
         <Route path="/realtime" element={<RealTimeSearch />} />
-        <Route path="/autocomplete" element={<AutocompleteSearchPage />} />
+        <Route path="/cfp" element={<SearchPageCFP />} />
+        <Route path="/cfo" element={<SearchPageCFO />} />
         <Route path="/upload" element={<Upload />} />
       </Routes>
     </Router>

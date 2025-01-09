@@ -6,21 +6,23 @@ const DataTable = ({ data }) => {
       <table style={styles.table}>
         <thead>
           <tr>
+            <th style={styles.header}>กลุ่ม</th>
             <th style={styles.header}>ชื่อ</th>
+            <th style={styles.header}>รายละเอียด</th>
             <th style={styles.header}>หน่วย</th>
-            <th style={styles.header}>Total [kg CO2eq/unit]</th>
+            <th style={styles.header}>ค่าแฟคเตอร์ (kgCO2e)</th>
             <th style={styles.header}>ข้อมูลอ้างอิง</th>
-            <th style={styles.header}>Description</th>
           </tr>
         </thead>
         <tbody>
           {data.map((item, index) => (
             <tr key={index} style={styles.row}>
+              <td style={styles.cell}>{item.กลุ่ม || '-'}</td>
               <td style={styles.cell}>{item.ชื่อ || '-'}</td>
+              <td style={styles.cell}>{item.รายละเอียด || '-'}</td>
               <td style={styles.cell}>{item.หน่วย || '-'}</td>
-              <td style={styles.cell}>{item['Total [kg CO2eq/unit]'] || '-'}</td>
+              <td style={styles.cell}>{item['ค่าแฟคเตอร์ (kgCO2e)'] || '-'}</td>
               <td style={styles.cell}>{item.ข้อมูลอ้างอิง || '-'}</td>
-              <td style={styles.cell}>{item.Description || '-'}</td>
             </tr>
           ))}
         </tbody>
