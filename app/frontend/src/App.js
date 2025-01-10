@@ -6,6 +6,7 @@ import RealTimeSearch from './pages/RealTimeSearch';
 import Upload from './pages/Upload';
 import SearchPageCFP from './pages/SearchPageCFP';
 import SearchPageCFO from './pages/SearchPageCFO';
+import SearchPageCLP from './pages/SearchPageCLP';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/realtime" element={<RealTimeSearch />} />
         <Route path="/cfp" element={<SearchPageCFP />} />
         <Route path="/cfo" element={<SearchPageCFO />} />
+        <Route path="/clp" element={<SearchPageCLP />} />
         <Route path="/upload" element={<Upload />} />
       </Routes>
     </Router>

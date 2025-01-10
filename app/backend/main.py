@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from routers import search,realtime
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 
 app = FastAPI()
@@ -14,6 +15,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+app.mount("/static",StaticFiles(directory="images"))
 
 
 @app.get("/")
