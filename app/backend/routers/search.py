@@ -94,6 +94,8 @@ INDEX_NAME = "ef1"
 
 
 
+
+
 @router.post("/upload-data/{index_name}")
 async def upload_data(file: UploadFile,index_name: str):
     if not file.filename.endswith('.csv'):
@@ -286,9 +288,8 @@ async def search_cfo(q: str = Query(None, description="Search query in Thai or E
                     "multi_match": {
                         "query": q,
                         "fields": ["ชื่อ", "รายละเอียด","กลุ่ม"],
-                        "type": "best_fields",
+                        # "type": "best_fields",
                         "operator": "and"
-                        #"analyzer": "thai_autocomplete_search_analyzer"
                     }
                 }
             })

@@ -140,19 +140,20 @@ index_settings = {
 }
 
 
-----------------------new------
+----------------------new update------
 PUT /ef2
 {
     "settings": {
         "analysis": {
             "filter": {
                 "thai_english_synonym_filter": {
-                    "type": "synonym",
-                    "synonyms_path": "analysis/synonyms.txt"
+                    "type": "synonym_graph",
+                    "synonyms_path": "analysis/synonyms.txt",
+                    "expand": true
                 },
                 "edge_ngram_filter": {
                     "type": "edge_ngram",
-                    "min_gram": 1,
+                    "min_gram": 3,
                     "max_gram": 20,
                     "token_chars": ["letter", "digit", "whitespace"]
                 }
@@ -177,7 +178,7 @@ PUT /ef2
                 },
                 "thai_synonym_analyzer": {
                     "type": "custom",
-                    "tokenizer": "standard",
+                    "tokenizer": "icu_tokenizer",
                     "filter": [
                         "lowercase",
                         "icu_folding",
