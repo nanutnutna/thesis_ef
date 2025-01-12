@@ -193,10 +193,11 @@ async def search_cfp(q: str = Query(None, description="Search query in Thai or E
                 "query": {
                     "multi_match": {
                         "query": q,
-                        "fields": ["ชื่อ", "รายละเอียด","กลุ่ม"],
-                        "type": "best_fields",
+                        "fields": ["ชื่อ^3", "รายละเอียด","กลุ่ม"],
+                        # "type": "best_fields",
                         "operator": "and",
-                        "analyzer": "thai_autocomplete_search_analyzer"
+                        "analyzer": "thai_autocomplete_analyzer"
+                        # "analyzer": "thai_autocomplete_search_analyzer"
                     }
                 }
             })
