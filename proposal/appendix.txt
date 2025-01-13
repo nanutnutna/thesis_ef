@@ -1,0 +1,34 @@
+---
+config:
+  layout: fixed
+  theme: default
+  look: classic
+---
+flowchart TB
+ subgraph subGraph0["Data Collection & Processing"]
+        B["Data Source TGO"]
+        A["Web Scraping Data Extraction"]
+        C["Data Preprocessing Data Cleaning"]
+        D["Synonym Dictionary Creation"]
+        E["Create Elasticsearch Index"]
+  end
+ subgraph subGraph1["Backend Search Engine"]
+        G["FastAPI Backend"]
+        H["Elasticsearch Engine"]
+  end
+ subgraph Frontend["Frontend"]
+        J[/"User Query Thai/English"/]
+        I(["React.js Frontend"])
+        K[/"Search Results"/]
+  end
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> G
+    G --> H
+    I --> J
+    J --> G
+    H --> K
+    K --> I
+----https://www.mermaidchart.com/app/projects/aa096fd6-eb0a-4c18-aa39-05fcdf043330/diagrams/ac838b5c-6cc6-4d56-a78e-b25bb8148a1e/version/v0.1/edit
