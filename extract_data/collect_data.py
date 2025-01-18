@@ -12,32 +12,34 @@ OUTPUT_PATH = r"C:\Users\Nattapot\Desktop\thesis_ef\extract_data\source"
 current_date = datetime.now().strftime("%Y%m%d")
 
 # URL to scrape
-def extract_cfp(url=URL_CFP):
+def extract_cfp(url):
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    url = "https://thaicarbonlabel.tgo.or.th/index.php?lang=TH&mod=Y0hKdlpIVmpkSE5mWlcxcGMzTnBiMjQ9"
+    url = URL_CFP
 
     # Send a GET request
     response = requests.get(url, verify=False)
+    try:
+        # Check if the request was successful
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.content, 'lxml')
+            table = soup.find("table",{"class":"table table-striped table-bordered table-hover table-full-width table-customize"})
+            df = pd.read_html(StringIO(str(table)))[0]
 
-    # Check if the request was successful
-    if response.status_code == 200:
-        soup = BeautifulSoup(response.content, 'lxml')
-        table = soup.find("table",{"class":"table table-striped table-bordered table-hover table-full-width table-customize"})
-        df = pd.read_html(StringIO(str(table)))[0]
-        
-        #re-order
-        df = df[['ลำดับ','กลุ่ม','ชื่อ','รายละเอียด','หน่วย','ค่าแฟคเตอร์ (kgCO2e)','ข้อมูลอ้างอิง','วันที่อัพเดท']]
-        df['ประเภทแฟคเตอร์'] = "CFP"
-    else:
-        print(f"Failed to fetch page, status code: {response.status_code}")
+            #re-order
+            df = df[['ลำดับ','กลุ่ม','ชื่อ','รายละเอียด','หน่วย','ค่าแฟคเตอร์ (kgCO2e)','ข้อมูลอ้างอิง','วันที่อัพเดท']]
+            df['ประเภทแฟคเตอร์'] = "CFP"
+        else:
+            print(f"Failed to fetch page, status code: {response.status_code}")
+    except Exception as e:
+        print(f'Unexpected error occurred: {e}')
 
     output = f"{OUTPUT_PATH}/emission_factor_cfp_{current_date}.csv"
     df.to_csv(output,index=False,encoding='utf-8-sig')
     return df
 
-def extract_cfo(url=URL_CFO):
+def extract_cfo(url):
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    url = "https://thaicarbonlabel.tgo.or.th/index.php?lang=TH&mod=YjNKbllXNXBlbUYwYVc5dVgyVnRhWE56YVc5dQ"
+    url = URL_CFO
 
 
     response = requests.get(url, verify=False)
