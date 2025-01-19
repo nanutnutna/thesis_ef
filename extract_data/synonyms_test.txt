@@ -1,0 +1,32 @@
+# เกษตรกรรม
+Agriculture, เกษตรกรรม
+Forestry, ป่าไม้
+Cob, ซังข้าวโพด
+Bagasse, ชานอ้อย
+
+# ชีวมวลและพลังงานทดแทน
+Biogas, ก๊าซชีวภาพ
+Bagasse, ชานอ้อย
+Palm kernel shell, กะลาปาล์ม
+
+# ประเภทเชื้อเพลิง
+Anthracite, แอนทราไซต์, ถ่านหินแข็ง
+Lignite, ลิกไนต์, ถ่านหินน้ำตาล
+Fuel wood, ฟืน, ไม้เชื้อเพลิง
+Compressed Natural Gas, CNG, ก๊าซธรรมชาติอัด
+Liquified Petroleum Gas, LPG, ก๊าซปิโตรเลียมเหลว, ก๊าซหุงต้ม
+Natural gas, ก๊าซธรรมชาติ
+Diesel Oil, Diesel, น้ำมันดีเซล, ดีเซล
+Fuel oil, น้ำมันเตา
+Jet Kerosene, น้ำมันก๊าดอากาศยาน
+gasoline, น้ำมันเบนซิน, เบนซิน
+Gas, ก๊าซ, แก๊ส
+Combustion, การเผาไหม้
+Refrigerants, สารทำความเย็น
+4 stroke, เครื่องยนต์สี่จังหวะ
+2 stroke, เครื่องยนต์สองจังหวะ
+
+# ครัวเรือนและอุตสาหกรรม
+Household, ครัวเรือน
+Industry, อุตสาหกรรม
+

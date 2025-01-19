@@ -4,7 +4,7 @@ from datetime import datetime,timedelta
 INPUT_PATH = r"C:\Users\Nattapot\Desktop\thesis_ef\extract_data\source"
 FILE_NAME_CFO = "emission_factor_cfo"
 FILE_NAME_CFP = "emission_factor_cfp"
-CONCAT_CFP_CFO = "emission_factor_"
+CONCAT_CFP_CFO = "emission_factor"
 
 current_date = datetime.now()
 last_date = datetime.now() - timedelta(days=1)
@@ -27,8 +27,8 @@ def compare_table(table1,table2):
 
 
 if __name__ == "__main__":
-    table1 = read_table_csv(filename=CONCAT_CFP_CFO,date=last_date_str)
-    table2 = read_table_csv(filename=CONCAT_CFP_CFO,date=current_date_str)
+    table1 = read_table_csv(filename=CONCAT_CFP_CFO,date=current_date_str)
+    table2 = read_table_csv(filename=CONCAT_CFP_CFO,date=last_date_str)
     if compare_table(table1,table2):
         print("nothing diff")
     else:
