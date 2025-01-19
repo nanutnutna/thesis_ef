@@ -457,3 +457,99 @@ async def autocomplete_clp(q: str = Query(..., description="Autocomplete query")
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+######################################## ef1+2####################################################
+@router.get("/search-data_combine/")
+async def search_cfp(q: str = Query(None, description="Search query in Thai or English")):
+    try:
+        if not q:
+            # กรณีไม่มีคำค้นหา แสดงข้อมูลทั้งหมด
+            response = es.search(index="emission_data", body={
+                "query": {
+                    "match_all": {}
+                },
+                "size": 1000
+            })
+        else:
+            # กรณีมีคำค้นหา
+            response = es.search(index="emission_data", body={
+                "query": {
+                    "multi_match": {
+                        "query": q,
+                        "fields": ["ชื่อ^3", "รายละเอียด","กลุ่ม"],
+                        # "type": "best_fields",
+                        "operator": "and",
+                        "analyzer": "thai_autocomplete_analyzer"
+                        # "analyzer": "thai_autocomplete_search_analyzer"
+                    }
+                }
+            })
+
+        # จัดการผลลัพธ์
+        unique_results = []
+        seen_ids = set()
+        for hit in response['hits']['hits']:
+            if hit["_id"] not in seen_ids:
+                unique_results.append(hit["_source"])
+                seen_ids.add(hit["_id"])
+                
+    except Exception as e:
+        return {"error": str(e)}
+    
+    return unique_results
+
+
+@router.get("/autocomplete_combine/")
+async def autocomplete_cfp(q: str = Query(..., description="Autocomplete query")):
+    """
+    Autocomplete พร้อม Fuzzy Search
+    """
+    try:
+        response = es.search(index="emission_data", body={
+            "query": {
+                "bool": {
+                    "should": [
+                        {
+                            "match_phrase_prefix": {
+                                "ชื่อ": {
+                                    "query": q
+                                }
+                            }
+                        },
+                        {
+                            "match": {
+                                "ชื่อ": {
+                                    "query": q,
+                                    "fuzziness": "AUTO"  # เปิดใช้งาน Fuzzy Search
+                                }
+                            }
+                        },
+                        {
+                            "match_phrase_prefix": { ### เพิ่มฟิลด์รายละเอียดด้วย
+                                "รายละเอียด": {
+                                    "query": q
+                                }
+                            }
+                        },
+                        {
+                            "match": {
+                                "รายละเอียด": {
+                                    "query": q,
+                                    "fuzziness": "AUTO"
+                                }
+                            }
+                        }
+                    ]
+                }
+            },
+            "_source": ["ชื่อ","รายละเอียด"], ##เพิ่มรายละเอียด
+            "size": 10
+        })
+
+        suggestions = [hit["_source"].get("ชื่อ", "N/A") for hit in response['hits']['hits']]
+        return {"suggestions": suggestions}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

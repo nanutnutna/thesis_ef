@@ -38,3 +38,13 @@ export const searchDataCLP = (query) => {
 export const fetchAutocompleteCLP = async (query) => {
   return await api.get(`/autocomplete_clp/?q=${query}`);
 };
+
+
+
+// CFO+CFP
+export const searchDataCombine = (query) => {
+  return api.get(`/search-data_combine/?q=${query}`);
+};
+export const fetchAutocompleteCombine = async (query) => {
+  return await api.get(`/autocomplete_combine/?q=${query}`);
+};
