@@ -5,6 +5,7 @@ from io import BytesIO
 from schemas import Document
 import numpy as np
 from fastapi.templating import Jinja2Templates
+import datetime
 
 router = APIRouter()
 es = Elasticsearch("https://localhost:9200",
@@ -93,6 +94,22 @@ INDEX_NAME = "ef1"
 #     print(f"Error creating index: {e}")
 
 
+
+
+@router.get("/creation-date")
+def get_creation_date():
+    try:
+        response = es.indices.get(index="emission_data")
+        # ดึงค่า creation_date
+        creation_date = int(response["emission_data"]["settings"]["index"]["creation_date"])
+        
+        # แปลง creation_date จาก epoch time (ms) เป็นวันที่
+        creation_date_seconds = creation_date / 1000
+        date = datetime.datetime.fromtimestamp(creation_date_seconds)
+
+        return {"creation_date": date.strftime('%Y-%m-%d %H:%M:%S')}
+    except Exception as e:
+        return {"error": str(e)}
 
 
 

@@ -9,6 +9,11 @@ export const testAPI = () => {
   return api.get('/');
 };
 
+//get create date
+export const createDate = () => {
+  return api.get('/creation-date');
+};
+
 // upload files
 export const uploadData = (formData) => {
   return api.post('/upload-data-with-image/', formData);

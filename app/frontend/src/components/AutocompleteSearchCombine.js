@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { fetchAutocompleteCombine, searchDataCombine } from '../api/api';
+import { fetchAutocompleteCombine, searchDataCombine, createDate} from '../api/api';
 import DataTableCombine from './DataTableCombine';
 
 const AutocompleteSearchCombine = () => {
@@ -9,6 +9,24 @@ const AutocompleteSearchCombine = () => {
   const [error, setError] = useState(null);
   const [isFocused, setIsFocused] = useState(false);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [creationDate, setCreationDate] = useState('');
+
+
+  useEffect(() => {
+    const fetchCreationDate = async () => {
+      try {
+        const response = await createDate(); // API Endpoint สำหรับ creationDate
+        setCreationDate(response.data.creation_date || 'Unknown');
+      } catch (err) {
+        console.error('Error fetching creation date:', err);
+        setCreationDate('Unknown');
+      }
+    };
+
+    fetchCreationDate();
+  }, []);
+
+
 
   // โหลดข้อมูลเริ่มต้น
   useEffect(() => {
@@ -113,6 +131,11 @@ const AutocompleteSearchCombine = () => {
       {/* แสดงสถานะการโหลดครั้งแรก */}
       {isInitialLoad && <p>Loading initial data...</p>}
 
+      {/* แสดง creationDate */}
+      <div style={styles.creationDate}>
+        <p>Last Update: {creationDate}</p>
+      </div>
+
       {/* แสดงผลลัพธ์ในตาราง */}
       {results.length > 0 ? (
         <div style={styles.tableWrapper}>
@@ -200,6 +223,13 @@ const styles = {
     maxWidth: '1000px',
     marginTop: '20px',
     overflowX: 'auto',
+  },
+  creationDate: {
+    position: 'absolute',
+    top: '20px',
+    right: '20px',
+    fontSize: '14px',
+    color: '#555',
   },
 };
 

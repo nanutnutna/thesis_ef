@@ -217,8 +217,8 @@ default_args = {
 with DAG(
     'extract_emission_data',
     default_args=default_args,
-    description='DAG สำหรับดึงข้อมูลการปล่อยคาร์บอน',
-    schedule_interval='15 0 * * *',
+    description='DAG for extracting carbon emission data',
+    schedule_interval='0 * * * *',
     start_date=datetime(2025, 1, 1), 
     catchup=False,
 ) as dag:
