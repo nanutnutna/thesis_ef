@@ -15,7 +15,7 @@ export const createDate = () => {
 };
 
 //get all index
-export const listIndex = () => {
+export const listDropdownOptions = () => {
   return api.get('/available-dates');
 };
 
@@ -52,9 +52,31 @@ export const fetchAutocompleteCLP = async (query) => {
 
 
 // CFO+CFP
-export const searchDataCombine = (query) => {
-  return api.get(`/search-data_combine/?q=${query}`);
+export const searchDataCombine = async (query, date) => {
+  const params = new URLSearchParams();
+  if (query) params.append('q', query); // เพิ่ม query หากมี
+  if (date) params.append('date', date); // เพิ่ม date หากมี
+
+  try {
+    const response = await api.get(`/search-data_combine/?${params.toString()}`);
+    return response.data; // ส่งคืนข้อมูล
+  } catch (error) {
+    console.error('Error fetching search data:', error);
+    throw error; // ส่งข้อผิดพลาดให้จัดการในส่วนที่เรียกใช้
+  }
 };
-export const fetchAutocompleteCombine = async (query) => {
-  return await api.get(`/autocomplete_combine/?q=${query}`);
+
+// ฟังก์ชัน autocomplete สำหรับ CFO + CFP
+export const fetchAutocompleteCombine = async (query, date) => {
+  const params = new URLSearchParams();
+  if (query) params.append('q', query); // เพิ่ม query หากมี
+  if (date) params.append('date', date); // เพิ่ม date หากมี
+
+  try {
+    const response = await api.get(`/autocomplete_combine/?${params.toString()}`);
+    return response.data; // ส่งคืนข้อมูล autocomplete
+  } catch (error) {
+    console.error('Error fetching autocomplete data:', error);
+    throw error; // ส่งข้อผิดพลาดให้จัดการในส่วนที่เรียกใช้
+  }
 };

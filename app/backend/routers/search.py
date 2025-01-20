@@ -4,7 +4,6 @@ import pandas as pd
 from io import BytesIO
 from schemas import Document
 import numpy as np
-from fastapi.templating import Jinja2Templates
 import datetime
 
 router = APIRouter()
@@ -162,6 +161,20 @@ async def upload_data(file: UploadFile,index_name: str):
                     "ค่าแฟคเตอร์ (kgCO2e)": row.get("ค่าแฟคเตอร์ (kgCO2e)"),
                     "ข้อมูลอ้างอิง": row.get("ข้อมูลอ้างอิง"),
                     "วันที่อัพเดท": row.get("วันที่อัพเดท")
+                }
+                es.index(index=index_name,document=document)
+        elif index_name == "emission_data_20250119":
+            for _,row in df.iterrows():
+                document = {
+                    "กลุ่ม": row.get("กลุ่ม"),
+                    "ลำดับ": row.get("ลำดับ"),
+                    "ชื่อ": row.get("ชื่อ"),
+                    "รายละเอียด": row.get("รายละเอียด"),
+                    "หน่วย": row.get("หน่วย"),
+                    "ค่าแฟคเตอร์ (kgCO2e)": row.get("ค่าแฟคเตอร์ (kgCO2e)"),
+                    "ข้อมูลอ้างอิง": row.get("ข้อมูลอ้างอิง"),
+                    "วันที่อัพเดท": row.get("วันที่อัพเดท"),
+                    "ประเภทแฟคเตอร์": row.get("ประเภทแฟคเตอร์")
                 }
                 es.index(index=index_name,document=document)
         elif index_name == "ef3":
@@ -490,11 +503,17 @@ async def autocomplete_clp(q: str = Query(..., description="Autocomplete query")
 
 ######################################## ef1+2####################################################
 @router.get("/search-data_combine/")
-async def search_cfp(q: str = Query(None, description="Search query in Thai or English")):
+async def search_combine(q:str = Query(None, description="Search query in Thai or English"),
+                         date:str = Query(..., description="Date for the Elasticsearch index in YYYYMMDD format")):
+    
+    if not date:
+        raise HTTPException(status_code=400, detail="Date is required")
+    index_name = f'emission_data_{date}'
+
     try:
         if not q:
             # กรณีไม่มีคำค้นหา แสดงข้อมูลทั้งหมด
-            response = es.search(index="emission_data", body={
+            response = es.search(index=index_name, body={
                 "query": {
                     "match_all": {}
                 },
@@ -502,7 +521,7 @@ async def search_cfp(q: str = Query(None, description="Search query in Thai or E
             })
         else:
             # กรณีมีคำค้นหา
-            response = es.search(index="emission_data", body={
+            response = es.search(index=index_name, body={
                 "query": {
                     "multi_match": {
                         "query": q,
@@ -522,20 +541,26 @@ async def search_cfp(q: str = Query(None, description="Search query in Thai or E
             if hit["_id"] not in seen_ids:
                 unique_results.append(hit["_source"])
                 seen_ids.add(hit["_id"])
-                
+        return unique_results
+
     except Exception as e:
         return {"error": str(e)}
     
-    return unique_results
 
 
 @router.get("/autocomplete_combine/")
-async def autocomplete_cfp(q: str = Query(..., description="Autocomplete query")):
+async def autocomplete_combine(q: str = Query(..., description="Autocomplete query"),
+                               date:str = Query(..., description="Date for the Elasticsearch index in YYYYMMDD format")):
     """
     Autocomplete พร้อม Fuzzy Search
     """
+
+    if not date:
+        raise HTTPException(status_code=400, detail="Date is required")
+    index_name = f'emission_data_{date}'
+
     try:
-        response = es.search(index="emission_data", body={
+        response = es.search(index=index_name, body={
             "query": {
                 "bool": {
                     "should": [

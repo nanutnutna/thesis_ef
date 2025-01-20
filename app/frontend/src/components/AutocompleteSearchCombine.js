@@ -1,21 +1,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { fetchAutocompleteCombine, searchDataCombine, createDate} from '../api/api';
+import { fetchAutocompleteCombine, searchDataCombine, createDate, listDropdownOptions } from '../api/api';
 import DataTableCombine from './DataTableCombine';
 
 const AutocompleteSearchCombine = () => {
-  const [query, setQuery] = useState('');
-  const [suggestions, setSuggestions] = useState([]);
-  const [results, setResults] = useState([]);
-  const [error, setError] = useState(null);
-  const [isFocused, setIsFocused] = useState(false);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const [creationDate, setCreationDate] = useState('');
+  const [query, setQuery] = useState(''); // คำค้นหา
+  const [suggestions, setSuggestions] = useState([]); // คำแนะนำ autocomplete
+  const [results, setResults] = useState([]); // ผลลัพธ์การค้นหา
+  const [error, setError] = useState(null); // ข้อผิดพลาด
+  const [isFocused, setIsFocused] = useState(false); // สถานะ focus
+  const [isInitialLoad, setIsInitialLoad] = useState(true); // โหลดข้อมูลเริ่มต้น
+  const [creationDate, setCreationDate] = useState(''); // วันที่สร้างข้อมูล
+  const [dropdownOptions, setDropdownOptions] = useState([]); // รายการวันที่
+  const [selectedOption, setSelectedOption] = useState(''); // วันที่ที่เลือก
 
-
+  // ดึงข้อมูล creation date
   useEffect(() => {
     const fetchCreationDate = async () => {
       try {
-        const response = await createDate(); // API Endpoint สำหรับ creationDate
+        const response = await createDate();
         setCreationDate(response.data.creation_date || 'Unknown');
       } catch (err) {
         console.error('Error fetching creation date:', err);
@@ -26,70 +28,88 @@ const AutocompleteSearchCombine = () => {
     fetchCreationDate();
   }, []);
 
-
-
-  // โหลดข้อมูลเริ่มต้น
+  // ดึงรายการวันที่สำหรับ dropdown
   useEffect(() => {
-    const fetchInitialData = async () => {
+    const fetchDropdownOptions = async () => {
       try {
-        const response = await searchDataCombine('');
-        setResults(response.data || []);
+        const response = await listDropdownOptions();
+        if (response.data && Array.isArray(response.data.dates)) {
+          setDropdownOptions(response.data.dates);
+        } else {
+          setDropdownOptions([]);
+        }
       } catch (err) {
-        console.error('Initial Load Error:', err);
-        setError('Failed to load initial data');
-      } finally {
-        setIsInitialLoad(false);
+        console.error('Error fetching dropdown options:', err);
+        setDropdownOptions([]);
       }
     };
 
-    fetchInitialData();
+    fetchDropdownOptions();
   }, []);
 
-  // จัดการการเปลี่ยนแปลงใน Input
+  // ฟังก์ชันดึงข้อมูลตาม query และ date
+  const fetchData = useCallback(
+    async (searchQuery = query, selectedDate = selectedOption) => {
+      if (!selectedDate) {
+        setError('Please select a date.');
+        setResults([]);
+        return;
+      }
+
+      try {
+        const response = await searchDataCombine(searchQuery, selectedDate);
+        setResults(response.results || []);
+        setError(null);
+      } catch (err) {
+        console.error('Search Error:', err);
+        setError('Failed to fetch search results');
+        setResults([]);
+      } finally {
+        setIsInitialLoad(false);
+      }
+    },
+    [query, selectedOption]
+  );
+
+  // เรียก fetchData เมื่อเปลี่ยน dropdown
+  useEffect(() => {
+    if (selectedOption) fetchData();
+  }, [selectedOption, fetchData]);
+
+  // จัดการเมื่อพิมพ์คำค้นหา
   const handleChange = async (e) => {
     const value = e.target.value;
     setQuery(value);
 
     if (value.trim() !== '') {
       try {
-        const response = await fetchAutocompleteCombine(value);
-        setSuggestions(response.data.suggestions || []);
+        const response = await fetchAutocompleteCombine(value, selectedOption);
+        setSuggestions(response.suggestions || []);
       } catch (err) {
         console.error('Autocomplete Error:', err);
         setSuggestions([]);
       }
     } else {
       setSuggestions([]);
-      await handleSearch('');
+      fetchData('', selectedOption); // ค้นหาทั้งหมดเมื่อ query ว่าง
     }
   };
 
-  // เลือกคำแนะนำ
+  // จัดการเมื่อเปลี่ยน dropdown
+  const handleDropdownChange = (e) => {
+    const selectedDate = e.target.value;
+    setSelectedOption(selectedDate);
+    setResults([]); // ล้างผลลัพธ์ก่อน
+    setQuery(''); // ล้าง query
+    fetchData('', selectedDate); // ดึงข้อมูลใหม่
+  };
+
+  // จัดการเมื่อเลือกคำแนะนำ
   const handleSelectSuggestion = async (suggestion) => {
     setQuery(suggestion);
     setSuggestions([]);
-    await handleSearch(suggestion);
+    await fetchData(suggestion);
   };
-
-  // ค้นหา
-  const handleSearch = useCallback(async (searchQuery) => {
-    try {
-      const response = await searchDataCombine(searchQuery || query);
-      setResults(response.data || []);
-      setError(null);
-    } catch (err) {
-      console.error('Search Error:', err);
-      setError('Failed to fetch search results');
-      setResults([]);
-    }
-  }, [query]);
-
-  // โหลดข้อมูลทั้งหมดหาก Query ว่าง
-  useEffect(() => {
-    if (query.trim() === '') {
-      handleSearch('');
-    }
-  }, [query, handleSearch]);
 
   return (
     <div style={styles.container}>
@@ -106,8 +126,22 @@ const AutocompleteSearchCombine = () => {
             onBlur={() => setTimeout(() => setIsFocused(false), 200)}
             style={styles.searchBox}
           />
+          <select
+            value={selectedOption}
+            onChange={handleDropdownChange}
+            style={styles.dropdown}
+          >
+            <option value="">Select Date</option>
+            {dropdownOptions.map((option, index) => {
+              const formattedOption = `${option.slice(0, 4)}-${option.slice(4, 6)}-${option.slice(6)}`;
+              return (
+                <option key={index} value={option}>
+                  {formattedOption}
+                </option>
+              );
+            })}
+          </select>
         </div>
-        {/* แสดงคำแนะนำ */}
         {isFocused && suggestions.length > 0 && (
           <div style={styles.suggestionsBox}>
             <ul style={styles.suggestionsList}>
@@ -124,19 +158,11 @@ const AutocompleteSearchCombine = () => {
           </div>
         )}
       </div>
-
-      {/* แสดง Error */}
       {error && <p style={styles.error}>{error}</p>}
-
-      {/* แสดงสถานะการโหลดครั้งแรก */}
       {isInitialLoad && <p>Loading initial data...</p>}
-
-      {/* แสดง creationDate */}
       <div style={styles.creationDate}>
         <p>Last Update: {creationDate}</p>
       </div>
-
-      {/* แสดงผลลัพธ์ในตาราง */}
       {results.length > 0 ? (
         <div style={styles.tableWrapper}>
           <DataTableCombine data={results} />
@@ -184,11 +210,20 @@ const styles = {
     color: '#888',
   },
   searchBox: {
-    width: '100%',
+    flex: 1,
     padding: '12px 15px',
     fontSize: '1rem',
     border: 'none',
     outline: 'none',
+  },
+  dropdown: {
+    padding: '12px',
+    fontSize: '1rem',
+    border: 'none',
+    outline: 'none',
+    backgroundColor: '#fff',
+    cursor: 'pointer',
+    borderLeft: '1px solid #ccc',
   },
   suggestionsBox: {
     position: 'absolute',
