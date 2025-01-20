@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { fetchAutocompleteCombine, searchDataCombine, createDate} from '../api/api';
+import { fetchAutocompleteCombine, searchDataCombine, createDate, listIndex} from '../api/api';
 import DataTableCombine from './DataTableCombine';
 
 const AutocompleteSearchCombine = () => {

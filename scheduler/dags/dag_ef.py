@@ -23,7 +23,7 @@ current_date = datetime.now()
 last_date = current_date - timedelta(days=1)
 current_date_str = current_date.strftime("%Y%m%d")
 last_date_str = last_date.strftime("%Y%m%d")
-
+current_date_str_h = current_date.strftime("%Y%m%d_%H%M%S")
 
 
 def extract_cfp(**kwargs):
@@ -101,7 +101,7 @@ def compare_table(**kwargs):
             kwargs['ti'].xcom_push(key='diff_flag', value=False)
         else:
             differences = table1.compare(table2)
-            diff_output = f"{OUTPUT_PATH}/differences_{current_date_str}.csv"
+            diff_output = f"{OUTPUT_PATH}/differences_{current_date_str_h}.csv"
             differences.to_csv(diff_output, index=False, encoding='utf-8-sig')
             print(f"Differences saved to {diff_output}")
             kwargs['ti'].xcom_push(key='diff_flag', value=True) 

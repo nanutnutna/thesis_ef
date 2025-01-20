@@ -14,6 +14,11 @@ export const createDate = () => {
   return api.get('/creation-date');
 };
 
+//get all index
+export const listIndex = () => {
+  return api.get('/available-dates');
+};
+
 // upload files
 export const uploadData = (formData) => {
   return api.post('/upload-data-with-image/', formData);

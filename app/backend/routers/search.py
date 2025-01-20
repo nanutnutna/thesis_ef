@@ -113,6 +113,17 @@ def get_creation_date():
 
 
 
+@router.get("/available-dates/")
+async def available_dates():
+    try:
+        indices = es.cat.indices(index="emission_data_*", format="json")
+        dates = [index["index"].split("_")[-1] for index in indices]
+        return {"dates": dates}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
 @router.post("/upload-data/{index_name}")
 async def upload_data(file: UploadFile,index_name: str):
     if not file.filename.endswith('.csv'):
