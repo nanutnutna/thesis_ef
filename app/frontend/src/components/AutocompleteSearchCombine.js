@@ -162,6 +162,7 @@ const styles = {
     flexDirection: 'column',
     alignItems: 'center',
     backgroundColor: '#f9fafc',
+    minHeight: '100vh', // ใช้พื้นที่เต็มหน้าจอแนวตั้ง
   },
   searchBoxContainer: {
     width: '80%',
@@ -219,10 +220,12 @@ const styles = {
     marginTop: '10px',
   },
   tableWrapper: {
-    width: '100%',
-    maxWidth: '1000px',
+    width: '100%', // ขยายเต็มหน้าจอ
     marginTop: '20px',
-    overflowX: 'auto',
+    border: '1px solid #ccc',
+    borderRadius: '8px',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    backgroundColor: '#fff',
   },
   creationDate: {
     position: 'absolute',
@@ -232,5 +235,6 @@ const styles = {
     color: '#555',
   },
 };
+
 
 export default AutocompleteSearchCombine;

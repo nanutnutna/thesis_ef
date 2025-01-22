@@ -13,6 +13,7 @@ const DataTableCombine = ({ data }) => {
             <th style={styles.header}>ค่าแฟคเตอร์ (kgCO2e)</th>
             <th style={styles.header}>ข้อมูลอ้างอิง</th>
             <th style={styles.header}>ประเภทแฟคเตอร์</th>
+            <th style={styles.header}>เปลี่ยนแปลง</th>
           </tr>
         </thead>
         <tbody>
@@ -25,6 +26,7 @@ const DataTableCombine = ({ data }) => {
               <td style={styles.cell}>{item['ค่าแฟคเตอร์ (kgCO2e)'] || '-'}</td>
               <td style={styles.cell}>{item.ข้อมูลอ้างอิง || '-'}</td>
               <td style={styles.cell}>{item.ประเภทแฟคเตอร์ || '-'}</td>
+              <td style={styles.cell}>{item.เปลี่ยนแปลง || '-'}</td>
             </tr>
           ))}
         </tbody>
@@ -35,14 +37,14 @@ const DataTableCombine = ({ data }) => {
 
 const styles = {
   tableContainer: {
-    overflowX: 'auto',
+    overflowX: 'auto', // เพิ่ม scroll ถ้าหน้าจอเล็ก
     marginTop: '20px',
     border: '1px solid #ccc',
-    borderRadius: '8px',
     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    maxWidth: '100%', // ปรับให้เต็มหน้าจอ
   },
   table: {
-    width: '100%',
+    width: '100%', // ใช้พื้นที่ทั้งหมดของ container
     borderCollapse: 'collapse',
   },
   header: {
@@ -51,6 +53,7 @@ const styles = {
     textAlign: 'left',
     padding: '12px',
     borderBottom: '1px solid #ddd',
+    whiteSpace: 'nowrap', // ป้องกันตัดคำ
   },
   row: {
     borderBottom: '1px solid #eee',
@@ -58,6 +61,14 @@ const styles = {
   cell: {
     padding: '12px',
     textAlign: 'left',
+    wordWrap: 'break-word', // ตัดคำอัตโนมัติ
+    maxWidth: '200px', // จำกัดความกว้างใน cell
+  },
+  '@media (max-width: 768px)': {
+    cell: {
+      fontSize: '14px', // ลดขนาดฟอนต์เมื่อหน้าจอเล็ก
+      padding: '8px', // ลด padding บนหน้าจอเล็ก
+    },
   },
 };
 

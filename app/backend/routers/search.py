@@ -178,6 +178,25 @@ async def upload_data(file: UploadFile,index_name: str):
                     "img_path": row.get("img_path")
                 }
                 es.index(index=index_name,document=document)
+        elif index_name == "emission_data_upsert":
+            for _, row in df.iterrows():
+                document = {
+                    "_op_type": "index",
+                    "_index": index_name,
+                    "_id": row["ลำดับ"],
+                    "_source": {
+                        "กลุ่ม": row["กลุ่ม"],
+                        "ชื่อ": row["ชื่อ"],
+                        "รายละเอียด": row["รายละเอียด"],
+                        "หน่วย": row["หน่วย"],
+                        "ค่าแฟคเตอร์ (kgCO2e)": row["ค่าแฟคเตอร์ (kgCO2e)"],
+                        "ข้อมูลอ้างอิง": row["ข้อมูลอ้างอิง"],
+                        "วันที่อัพเดท": row["วันที่อัพเดท"],
+                        "ประเภทแฟคเตอร์": row["ประเภทแฟคเตอร์"],
+                        "เปลี่ยนแปลง": row["เปลี่ยนแปลง"]
+                    }
+                }
+                es.index(index=document["_index"], id=document["_id"], document=document["_source"])
         else:
             raise HTTPException(status_code=400,detail=f"Index {index_name} is not supported")
     except Exception as e:
@@ -494,7 +513,7 @@ async def search_cfp(q: str = Query(None, description="Search query in Thai or E
     try:
         if not q:
             # กรณีไม่มีคำค้นหา แสดงข้อมูลทั้งหมด
-            response = es.search(index="emission_data", body={
+            response = es.search(index="emission_data_upsert", body={
                 "query": {
                     "match_all": {}
                 },
@@ -502,7 +521,7 @@ async def search_cfp(q: str = Query(None, description="Search query in Thai or E
             })
         else:
             # กรณีมีคำค้นหา
-            response = es.search(index="emission_data", body={
+            response = es.search(index="emission_data_upsert", body={
                 "query": {
                     "multi_match": {
                         "query": q,
@@ -535,7 +554,7 @@ async def autocomplete_cfp(q: str = Query(..., description="Autocomplete query")
     Autocomplete พร้อม Fuzzy Search
     """
     try:
-        response = es.search(index="emission_data", body={
+        response = es.search(index="emission_data_upsert", body={
             "query": {
                 "bool": {
                     "should": [
