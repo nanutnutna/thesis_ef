@@ -12,6 +12,7 @@ const DataTableCombine = ({ data }) => {
             <th style={styles.header}>หน่วย</th>
             <th style={styles.header}>ค่าแฟคเตอร์ (kgCO2e)</th>
             <th style={styles.header}>ข้อมูลอ้างอิง</th>
+            <th style={styles.header}>วันที่อัพเดท</th>
             <th style={styles.header}>ประเภทแฟคเตอร์</th>
             <th style={styles.header}>เปลี่ยนแปลง</th>
           </tr>
@@ -25,6 +26,7 @@ const DataTableCombine = ({ data }) => {
               <td style={styles.cell}>{item.หน่วย || '-'}</td>
               <td style={styles.cell}>{item['ค่าแฟคเตอร์ (kgCO2e)'] || '-'}</td>
               <td style={styles.cell}>{item.ข้อมูลอ้างอิง || '-'}</td>
+              <td style={styles.cell}>{item.วันที่อัพเดท || '-'}</td>
               <td style={styles.cell}>{item.ประเภทแฟคเตอร์ || '-'}</td>
               <td style={styles.cell}>{item.เปลี่ยนแปลง || '-'}</td>
             </tr>

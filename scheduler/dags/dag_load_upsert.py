@@ -215,20 +215,20 @@ with DAG(
         provide_context=True,
     )
 
-    # task_upsert_index = PythonOperator(
-    #     task_id='elasticsearch_upsert',
-    #     python_callable=elasticsearch_upsert,
-    #     provide_context=True,
-    # )
-
-    task_insert_index = PythonOperator(
-        task_id='elasticsearch_insert',
-        python_callable=elasticsearch_insert,
+    task_upsert_index = PythonOperator(
+        task_id='elasticsearch_upsert',
+        python_callable=elasticsearch_upsert,
         provide_context=True,
     )
+
+    # task_insert_index = PythonOperator(
+    #     task_id='elasticsearch_insert',
+    #     python_callable=elasticsearch_insert,
+    #     provide_context=True,
+    # )
 
     # task_insert_index 
 
 
 
-    [task_extract_cfp , task_extract_cfo] >> task_merge >> task_insert_index
+    [task_extract_cfp , task_extract_cfo] >> task_merge >> task_upsert_index
