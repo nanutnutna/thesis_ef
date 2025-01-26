@@ -10,7 +10,7 @@ const DataTableCombine = ({ data }) => {
             <th style={styles.header}>ชื่อ</th>
             <th style={styles.header}>รายละเอียด</th>
             <th style={styles.header}>หน่วย</th>
-            <th style={styles.header}>ค่าแฟคเตอร์ (kgCO2e)</th>
+            <th style={styles.header}>ค่าแฟคเตอร์</th>
             <th style={styles.header}>ข้อมูลอ้างอิง</th>
             <th style={styles.header}>วันที่อัพเดท</th>
             <th style={styles.header}>ประเภทแฟคเตอร์</th>

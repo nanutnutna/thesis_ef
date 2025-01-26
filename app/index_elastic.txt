@@ -321,7 +321,8 @@ index_settings = {
         "thai_english_synonym_filter": {
           "type": "synonym_graph",
           "synonyms_path": "analysis/synonyms.txt",
-          "expand": true
+          "expand": true,
+          "updateable": true
         }
       },
       "analyzer": {
@@ -402,7 +403,8 @@ PUT /emission_data_upsert
         "thai_english_synonym_filter": {
           "type": "synonym_graph",
           "synonyms_path": "analysis/synonyms.txt",
-          "expand": true
+          "expand": true,
+          "updateable": true
         }
       },
       "analyzer": {
