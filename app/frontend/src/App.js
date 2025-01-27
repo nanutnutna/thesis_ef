@@ -8,12 +8,13 @@ import SearchPageCFP from './pages/SearchPageCFP';
 import SearchPageCFO from './pages/SearchPageCFO';
 import SearchPageCLP from './pages/SearchPageCLP';
 import SearchPageCombine from './pages/SearchPageCombine';
+import SearchPageEmbedding from "./pages/SearchPageEmbedding";
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/home" element={<Home />} />
+        <Route path="/" element={<Home />} />
         <Route path="/search" element={<Search />} />
         <Route path="/realtime" element={<RealTimeSearch />} />
         <Route path="/cfp" element={<SearchPageCFP />} />
@@ -21,6 +22,7 @@ function App() {
         <Route path="/clp" element={<SearchPageCLP />} />
         <Route path="/combine" element={<SearchPageCombine />} />
         <Route path="/upload" element={<Upload />} />
+        <Route path="/search-embedding" element={<SearchPageEmbedding />} />
       </Routes>
     </Router>
   );

@@ -59,7 +59,7 @@ function Home() {
           onMouseEnter={(e) => (e.target.style.backgroundColor = styles.buttonHover.backgroundColor)}
           onMouseLeave={(e) => (e.target.style.backgroundColor = styles.button.backgroundColor)}
         >
-          Search
+          Gen-Search
         </Link>
         <Link
           to="/cfp"

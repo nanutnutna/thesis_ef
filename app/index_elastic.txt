@@ -470,3 +470,90 @@ PUT /emission_data_upsert
     }
   }
 }
+
+################## ef1+2 upsert embedding ##################
+
+PUT /emission_data_upsert_embedding
+{
+  "settings": {
+    "analysis": {
+      "filter": {
+        "thai_edge_ngram_filter": {
+          "type": "edge_ngram",
+          "min_gram": 1,
+          "max_gram": 20,
+          "token_chars": ["letter", "digit", "whitespace"]
+        },
+        "thai_english_synonym_filter": {
+          "type": "synonym_graph",
+          "synonyms_path": "analysis/synonyms.txt",
+          "expand": true
+        }
+      },
+      "analyzer": {
+        "thai_autocomplete_analyzer": {
+          "type": "custom",
+          "tokenizer": "icu_tokenizer",
+          "filter": [
+            "lowercase",
+            "icu_folding",
+            "thai_edge_ngram_filter"
+          ]
+        },
+        "thai_synonym_analyzer": {
+          "type": "custom",
+          "tokenizer": "icu_tokenizer",
+          "filter": [
+            "lowercase",
+            "icu_folding",
+            "thai_english_synonym_filter"
+          ]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "กลุ่ม": {
+        "type": "text",
+        "analyzer": "thai_autocomplete_analyzer",
+        "search_analyzer": "thai_synonym_analyzer"
+      },
+      "ชื่อ": {
+        "type": "text",
+        "analyzer": "thai_autocomplete_analyzer",
+        "search_analyzer": "thai_synonym_analyzer"
+      },
+      "รายละเอียด": {
+        "type": "text",
+        "analyzer": "thai_autocomplete_analyzer",
+        "search_analyzer": "thai_synonym_analyzer"
+      },
+      "หน่วย": {
+        "type": "text"
+      },
+      "ค่าแฟคเตอร์ (kgCO2e)": {
+        "type": "float"
+      },
+      "ข้อมูลอ้างอิง": {
+        "type": "text",
+        "analyzer": "thai_autocomplete_analyzer",
+        "search_analyzer": "thai_synonym_analyzer"
+      },
+      "วันที่อัพเดท": {
+        "type": "text"
+      },
+      "ประเภทแฟคเตอร์": {
+        "type": "text"
+      },
+      "เปลี่ยนแปลง": {
+        "type": "date",
+        "format": "yyyy-MM-dd"
+      },
+      "embedding": {
+        "type": "dense_vector",
+        "dims": 384
+      }
+    }
+  }
+}

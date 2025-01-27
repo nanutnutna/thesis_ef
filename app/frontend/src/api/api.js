@@ -58,3 +58,8 @@ export const searchDataCombine = (query) => {
 export const fetchAutocompleteCombine = async (query) => {
   return await api.get(`/autocomplete_combine/?q=${query}`);
 };
+
+// em
+export const searchDataEmbedding = (query) => {
+  return api.get(`/search-embedding/?q=${query}`);
+};

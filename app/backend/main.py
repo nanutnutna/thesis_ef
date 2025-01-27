@@ -1,12 +1,12 @@
 from fastapi import FastAPI
-from routers import search,realtime
+from routers import search
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 
 app = FastAPI()
 app.include_router(search.router)
-app.include_router(realtime.router)
+# app.include_router(llm.router)
 
 app.add_middleware(
     CORSMiddleware,
