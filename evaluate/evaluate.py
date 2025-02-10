@@ -2,7 +2,10 @@ from elasticsearch import Elasticsearch
 import numpy as np
 
 # Connect to Elasticsearch
-es = Elasticsearch("http://localhost:9200")
+es = Elasticsearch("https://localhost:9200",
+                   basic_auth=("elastic","JODDaUKomoKuPHFM2zEc"),
+                   ca_certs="C:/Users/Nattapot/Documents/elasticsearch-8.17.0/config/certs/http_ca.crt"
+)
 
 # Define the index and sample query set
 INDEX_NAME = "emission_factors"

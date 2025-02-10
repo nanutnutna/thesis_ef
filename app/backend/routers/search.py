@@ -17,86 +17,6 @@ embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/paraph
 
 INDEX_NAME = "ef1"
 
-# index_settings = {
-#     "settings": {
-#         "analysis": {
-#             "filter": {
-#                 "thai_english_synonym_filter": {
-#                     "type": "synonym",
-#                     "synonyms_path": "analysis/synonyms.txt"
-#                 },
-#                 "edge_ngram_filter": {
-#                     "type": "edge_ngram",
-#                     "min_gram": 1,
-#                     "max_gram": 20,
-#                     "token_chars": ["letter", "digit", "whitespace"]
-#                 }
-#             },
-#             "analyzer": {
-#                 "autocomplete_index_analyzer": {
-#                     "type": "custom",
-#                     "tokenizer": "standard",
-#                     "filter": [
-#                         "lowercase",
-#                         "icu_folding",
-#                         "edge_ngram_filter"
-#                     ]
-#                 },
-#                 "autocomplete_search_analyzer": {
-#                     "type": "custom",
-#                     "tokenizer": "standard",
-#                     "filter": [
-#                         "lowercase",
-#                         "icu_folding"
-#                     ]
-#                 },
-#                 "thai_synonym_analyzer": {
-#                     "type": "custom",
-#                     "tokenizer": "standard",
-#                     "filter": [
-#                         "lowercase",
-#                         "icu_folding",
-#                         "thai_english_synonym_filter"
-#                     ]
-#                 }
-#             }
-#         }
-#     },
-#     "mappings": {
-#         "properties": {
-#             "ลำดับ": {"type": "float"},
-#             "ชื่อ": {
-#                 "type": "text",
-#                 "analyzer": "autocomplete_index_analyzer",
-#                 "search_analyzer": "thai_synonym_analyzer"
-#             },
-#             "หน่วย": {"type": "text"},
-#             "Total [kg CO2eq/unit]": {"type": "float"},
-#             "ข้อมูลอ้างอิง": {
-#                 "type": "text",
-#                 "analyzer": "thai_synonym_analyzer"
-#             },
-#             "Description": {
-#                 "type": "text",
-#                 "analyzer": "thai_synonym_analyzer"
-#             }
-#         }
-#     }
-# }
-
-
-# if es.indices.exists(index=INDEX_NAME):
-#     print(f"Deleting existing index: {INDEX_NAME}")
-#     es.indices.delete(index=INDEX_NAME)
-
-# try:
-#     es.indices.create(index=INDEX_NAME, body=index_settings)
-#     print(f"Successfully created index: {INDEX_NAME}")
-# except Exception as e:
-#     print(f"Error creating index: {e}")
-
-
-
 
 @router.get("/creation-date")
 def get_creation_date():
@@ -528,10 +448,10 @@ async def search_cfp(q: str = Query(None, description="Search query in Thai or E
                     "multi_match": {
                         "query": q,
                         "fields": ["ชื่อ^3", "รายละเอียด","กลุ่ม"],
-                        # "type": "best_fields",
-                        "operator": "and",
-                        "analyzer": "thai_autocomplete_analyzer"
-                        # "analyzer": "thai_autocomplete_search_analyzer"
+                        "type": "best_fields",
+                        "operator": "and"
+                        # "analyzer": "thai_autocomplete_analyzer"
+                        # "analyzer": "thai_synonym_analyzer"
                     }
                 }
             })
