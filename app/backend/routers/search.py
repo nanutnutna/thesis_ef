@@ -8,9 +8,14 @@ from langchain_huggingface import HuggingFaceEmbeddings
 import datetime
 
 router = APIRouter()
-es = Elasticsearch("https://localhost:9200",
-                   basic_auth=("elastic","JODDaUKomoKuPHFM2zEc"),
-                   ca_certs="C:/Users/Nattapot/Documents/elasticsearch-8.17.0/config/certs/http_ca.crt"
+# es = Elasticsearch("https://localhost:9200",
+#                    basic_auth=("elastic","JODDaUKomoKuPHFM2zEc"),
+#                    ca_certs="C:/Users/Nattapot/Documents/elasticsearch-8.17.0/config/certs/http_ca.crt"
+# )
+
+es = Elasticsearch(
+    "https://201b20f220fd4642a18ad35f13021fe5.asia-southeast1.gcp.elastic-cloud.com:443",
+    api_key="Um5jU0FKVUJLcWtQQjJ6NzRNa2Q6MzhwRzNIaHVTdXVIOGZVSm16TElGQQ=="
 )
 
 embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
