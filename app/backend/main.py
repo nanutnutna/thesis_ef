@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from routers import search
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+# from fastapi.staticfiles import StaticFiles
 
 
 app = FastAPI()
@@ -17,7 +17,7 @@ app.add_middleware(
 )
 
 
-app.mount("/static",StaticFiles(directory="images"))
+# app.mount("/static",StaticFiles(directory="images"))
 
 
 @app.get("/")

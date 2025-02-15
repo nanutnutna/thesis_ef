@@ -4,7 +4,7 @@ import pandas as pd
 from io import BytesIO
 from schemas import Document
 import numpy as np
-from langchain_huggingface import HuggingFaceEmbeddings
+# from langchain_huggingface import HuggingFaceEmbeddings
 import datetime
 
 router = APIRouter()
@@ -18,7 +18,7 @@ es = Elasticsearch(
     api_key="Um5jU0FKVUJLcWtQQjJ6NzRNa2Q6MzhwRzNIaHVTdXVIOGZVSm16TElGQQ=="
 )
 
-embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+# embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
 
 INDEX_NAME = "ef1"
 
@@ -532,48 +532,48 @@ async def autocomplete_cfp(q: str = Query(..., description="Autocomplete query")
 
 ######################################## Embeddings ####################################################
 
-@router.get("/search-embedding/")
-async def search_with_embedding(q: str = Query(None, description="Search query in Thai or English")):
-    try:
-        if not q:
-            # กรณีไม่มีคำค้นหา แสดงข้อมูลทั้งหมด
-            response = es.search(
-                index="emission_data_upsert",
-                body={
-                    "query": {"match_all": {}},
-                    "size": 1000
-                }
-            )
-        else:
-            # กรณีมีคำค้นหา
-            question_embedding = embedding_model.embed_query(q)
+# @router.get("/search-embedding/")
+# async def search_with_embedding(q: str = Query(None, description="Search query in Thai or English")):
+#     try:
+#         if not q:
+#             # กรณีไม่มีคำค้นหา แสดงข้อมูลทั้งหมด
+#             response = es.search(
+#                 index="emission_data_upsert",
+#                 body={
+#                     "query": {"match_all": {}},
+#                     "size": 1000
+#                 }
+#             )
+#         else:
+#             # กรณีมีคำค้นหา
+#             question_embedding = embedding_model.embed_query(q)
 
-            response = es.search(
-                index="emission_data_upsert_embedding",
-                body={
-                    "_source": ["ชื่อ", "รายละเอียด", "กลุ่ม", "ค่าแฟคเตอร์ (kgCO2e)"],
-                    "query": {
-                        "script_score": {
-                            "query": {"match_all": {}},
-                            "script": {
-                                "source": "cosineSimilarity(params.query_vector, 'embedding') + 1.0",
-                                "params": {"query_vector": question_embedding}
-                            }
-                        }
-                    },
-                    "size": 100  # จำนวนผลลัพธ์ที่ต้องการ
-                }
-            )
+#             response = es.search(
+#                 index="emission_data_upsert_embedding",
+#                 body={
+#                     "_source": ["ชื่อ", "รายละเอียด", "กลุ่ม", "ค่าแฟคเตอร์ (kgCO2e)"],
+#                     "query": {
+#                         "script_score": {
+#                             "query": {"match_all": {}},
+#                             "script": {
+#                                 "source": "cosineSimilarity(params.query_vector, 'embedding') + 1.0",
+#                                 "params": {"query_vector": question_embedding}
+#                             }
+#                         }
+#                     },
+#                     "size": 100  # จำนวนผลลัพธ์ที่ต้องการ
+#                 }
+#             )
 
-        # จัดการผลลัพธ์
-        unique_results = []
-        seen_ids = set()
-        for hit in response['hits']['hits']:
-            if hit["_id"] not in seen_ids:
-                unique_results.append(hit["_source"])
-                seen_ids.add(hit["_id"])
+#         # จัดการผลลัพธ์
+#         unique_results = []
+#         seen_ids = set()
+#         for hit in response['hits']['hits']:
+#             if hit["_id"] not in seen_ids:
+#                 unique_results.append(hit["_source"])
+#                 seen_ids.add(hit["_id"])
 
-        return unique_results
+#         return unique_results
 
-    except Exception as e:
-        return {"error": str(e)}
+#     except Exception as e:
+#         return {"error": str(e)}
