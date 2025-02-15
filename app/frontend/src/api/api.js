@@ -1,7 +1,11 @@
 import axios from 'axios';
 
+// const api = axios.create({
+//   baseURL: 'http://127.0.0.1:8000', // ตรวจสอบให้แน่ใจว่า URL ถูกต้อง
+// });
+
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000', // ตรวจสอบให้แน่ใจว่า URL ถูกต้อง
+  baseURL: 'https://my-first-project-production-67dc.up.railway.app', // ตรวจสอบให้แน่ใจว่า URL ถูกต้อง
 });
 
 // ตรวจสอบว่ามีการ export ฟังก์ชัน testAPI
