@@ -8,6 +8,15 @@ const api = axios.create({
   baseURL: 'https://my-first-project-production-67dc.up.railway.app', // ตรวจสอบให้แน่ใจว่า URL ถูกต้อง
 });
 
+
+// const VITE_API_URL = import.meta.env.VITE_API_URL || 'https://my-first-project-production-67dc.up.railway.app';
+
+// const api = axios.create({
+//   baseURL: VITE_API_URL,
+// });
+
+// console.log('API URL:', VITE_API_URL);
+
 // ตรวจสอบว่ามีการ export ฟังก์ชัน testAPI
 export const testAPI = () => {
   return api.get('/');
