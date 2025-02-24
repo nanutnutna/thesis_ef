@@ -9,6 +9,7 @@ import SearchPageCFO from './pages/SearchPageCFO';
 import SearchPageCLP from './pages/SearchPageCLP';
 import SearchPageCombine from './pages/SearchPageCombine';
 import SearchPageEmbedding from "./pages/SearchPageEmbedding";
+import Dictionary from './pages/Dictionary';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         <Route path="/combine" element={<SearchPageCombine />} />
         <Route path="/upload" element={<Upload />} />
         <Route path="/search-embedding" element={<SearchPageEmbedding />} />
+        <Route path="/dictionary" element={<Dictionary />} />
       </Routes>
     </Router>
   );
