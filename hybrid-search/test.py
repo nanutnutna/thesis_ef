@@ -8245,9 +8245,3 @@ def user_search():
 # user_search()
 
 print("\nเสร็จสมบูรณ์! คุณสามารถใช้ฟังก์ชัน hybrid_search() เพื่อค้นหาข้อมูล")
-
-
-
-query = "ก๊าซหุงต้ม"
-vector = model.encode(query).tolist()
-print(vector)  # คัดลอก vector นี้ไปใส่ใน Kibana
