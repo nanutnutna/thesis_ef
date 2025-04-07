@@ -40,9 +40,8 @@ class EncodeResponse(BaseModel):
     vector: List[float]
 
 
-
 router = APIRouter()
-@router.get("/hybrid-search", response_model=SearchResponse)
+@router.get("/hybrid-search")
 async def search(query: str = Query(...,description="Hybrid Search",example="ก๊าซหุงต้ม")):
     try:
         # สร้าง embedding สำหรับคำค้นหา
@@ -57,23 +56,34 @@ async def search(query: str = Query(...,description="Hybrid Search",example="ก
                         {
                             "multi_match": {
                                 "query": query,
-                                "fields": ["ชื่อ^3", "รายละเอียด^2", "กลุ่ม"],
+                                "fields": ["ชื่อ^3", "รายละเอียด^2"],
                                 "boost": 0.5 #BM25_WEIGHT
                             }
                         },
                         # Vector search
+                        # {
+                        #     "script_score": {
+                        #         "query": {"match_all": {}},
+                        #         "script": {
+                        #             "source": "cosineSimilarity(params.query_vector, 'text_vector') + 1.0",
+                        #             "params": {
+                        #                 "query_vector": query_vector
+                        #             }
+                        #         },
+                        #         "boost": 0.5 #vector_weight
+                        #     }
+                        # }
+                        
+                        # Vector search ใช้ knn_vector แทน script_score
                         {
-                            "script_score": {
-                                "query": {"match_all": {}},
-                                "script": {
-                                    "source": "cosineSimilarity(params.query_vector, 'text_vector') + 1.0",
-                                    "params": {
-                                        "query_vector": query_vector
-                                    }
-                                },
-                                "boost": 0.5 #vector_weight
+                            "knn": {
+                                "field": "text_vector",
+                                "query_vector": query_vector,
+                                "k": 10,
+                                "num_candidates": 100,
+                                "boost": 0.5
                             }
-                        }
+                        }                        
                     ]
                 }
             },
@@ -107,6 +117,63 @@ async def search(query: str = Query(...,description="Hybrid Search",example="ก
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
     
+
+@router.get("/hybrid-search-rrf")
+async def search_rrf(query: str = Query(..., description="Hybrid Search with RRF", example="ก๊าซหุงต้ม")):
+    try:
+        # สร้าง embedding สำหรับคำค้นหา
+        query_vector = model.encode(query).tolist()
+        
+        # สร้าง query แบบ RRF
+        search_query = {
+            "size": 5,  # จำนวนผลลัพธ์ที่ต้องการ
+            "knn": {
+                "field": "text_vector",
+                "query_vector": query_vector,
+                "k": 10,
+                "num_candidates": 100
+            },
+            "rank": {
+                "rrf": {
+                    "window_size": 10,
+                    "rank_constant": 20
+                }
+            },
+            "query": {
+                "multi_match": {
+                    "query": query,
+                    "fields": ["ชื่อ^3", "รายละเอียด^2"]
+                }
+            }
+        }
+        
+        # ส่งคำขอค้นหาไปยัง Elasticsearch
+        start_time = time.time()
+        response = es.search(index=INDEX_NAME, body=search_query)
+        end_time = time.time()
+        
+        # แปลงผลลัพธ์ให้อยู่ในรูปแบบที่ต้องการ
+        results = []
+        for hit in response["hits"]["hits"]:
+            no_vector = {k: v for k, v in hit["_source"].items() if k != "text_vector"}
+            result = {
+                "id": hit["_id"],
+                "score": hit["_score"],
+                **no_vector
+                #**hit["_source"]  # แยกข้อมูลทั้งหมดจาก _source
+            }
+            results.append(result)
+        
+        # สร้าง response
+        return {
+            "total": response["hits"]["total"]["value"],
+            "took": end_time - start_time,
+            "results": results
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
+
 
 @router.post("/encode", response_model=EncodeResponse)
 async def encode_text(request: EncodeRequest):
