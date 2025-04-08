@@ -63,3 +63,9 @@ export const fetchAutocompleteCombine = async (query) => {
 export const searchDataEmbedding = (query) => {
   return api.get(`/search-embedding/?q=${query}`);
 };
+
+
+// hybrid-search
+export const searchHybrid = (query) => {
+  return api.get(`/hybrid-search?query=${encodeURIComponent(query)}`);
+};

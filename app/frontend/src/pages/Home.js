@@ -93,6 +93,14 @@ function Home() {
         >
           Search
         </Link>
+        <Link
+          to="/hybrid-search"
+          style={styles.button}
+          onMouseEnter={(e) => (e.target.style.backgroundColor = styles.buttonHover.backgroundColor)}
+          onMouseLeave={(e) => (e.target.style.backgroundColor = styles.button.backgroundColor)}
+        >
+          Hybrid
+        </Link>
       </div>
     </div>
   );

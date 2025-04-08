@@ -127,23 +127,27 @@ async def search_rrf(query: str = Query(..., description="Hybrid Search with RRF
         # สร้าง query แบบ RRF
         search_query = {
             "size": 5,  # จำนวนผลลัพธ์ที่ต้องการ
-            "knn": {
-                "field": "text_vector",
-                "query_vector": query_vector,
-                "k": 10,
-                "num_candidates": 100
-            },
-            "rank": {
-                "rrf": {
-                    "window_size": 10,
-                    "rank_constant": 20
-                }
-            },
-            "query": {
-                "multi_match": {
-                    "query": query,
-                    "fields": ["ชื่อ^3", "รายละเอียด^2"]
-                }
+            "rrf": {
+                "rank_window_size": 10,  # ขนาดหน้าต่างการจัดอันดับ (เดิมคือ window_size)
+                "rank_constant": 20,     # ค่าคงที่ในการคำนวณคะแนน RRF
+                "queries": [
+                    # คำสั่งค้นหาแบบ kNN
+                    {
+                        "knn": {
+                            "field": "text_vector",
+                            "query_vector": query_vector,
+                            "k": 10,
+                            "num_candidates": 100
+                        }
+                    },
+                    # คำสั่งค้นหาแบบ text
+                    {
+                        "multi_match": {
+                            "query": query,
+                            "fields": ["ชื่อ^3", "รายละเอียด^2"]
+                        }
+                    }
+                ]
             }
         }
         
