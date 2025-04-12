@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { searchHybrid } from "../api/api";
-import DataTableCombine from '../components/DataTableCombine';
+import DataTableCombine from '../components/DataTableHybrid';
 
 const SearchPageHybrid = () => {
   const [query, setQuery] = useState('');

@@ -14,7 +14,7 @@ const DataTableCombine = ({ data }) => {
             <th style={styles.header}>ข้อมูลอ้างอิง</th>
             <th style={styles.header}>วันที่มีผล</th>
             <th style={styles.header}>ประเภทแฟกเตอร์</th>
-            {/* <th style={styles.header}>เปลี่ยนแปลง</th> */}
+            <th style={styles.header}>คะแนน</th>
           </tr>
         </thead>
         <tbody>
@@ -28,7 +28,7 @@ const DataTableCombine = ({ data }) => {
               <td style={styles.cell}>{item.ข้อมูลอ้างอิง || '-'}</td>
               <td style={styles.cell}>{item.วันที่อัพเดท || '-'}</td>
               <td style={styles.cell}>{item.ประเภทแฟคเตอร์ || '-'}</td>
-              {/* <td style={styles.cell}>{item.เปลี่ยนแปลง || '-'}</td> */}
+              <td style={styles.cell}>{item.score || '-'}</td>
             </tr>
           ))}
         </tbody>

@@ -16,9 +16,9 @@ es = Elasticsearch(cloud_id=CLOUD_ID,api_key=API_KEY)
 model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
 
 
-FIELDS = ["ชื่อ^3", "รายละเอียด^2", "กลุ่ม"]
+FIELDS = ["ชื่อ^3", "รายละเอียด^2"]
 BM25_WEIGHT = 0.6
-VECTOR_WEIGHT = 0.4
+VECTOR_WEIGHT = 1 - BM25_WEIGHT
 SEARCH_SIZE = 10
 
 # class SearchRequest(BaseModel):
@@ -57,7 +57,7 @@ async def search(query: str = Query(...,description="Hybrid Search",example="ก
                             "multi_match": {
                                 "query": query,
                                 "fields": ["ชื่อ^3", "รายละเอียด^2"],
-                                "boost": 0.5 #BM25_WEIGHT
+                                "boost": BM25_WEIGHT
                             }
                         },
                         # Vector search
@@ -81,13 +81,13 @@ async def search(query: str = Query(...,description="Hybrid Search",example="ก
                                 "query_vector": query_vector,
                                 "k": 10,
                                 "num_candidates": 100,
-                                "boost": 0.5
+                                "boost": VECTOR_WEIGHT
                             }
                         }                        
                     ]
                 }
             },
-            "size": 5 #size
+            "size": SEARCH_SIZE #size
         }
         
         # ส่งคำขอค้นหาไปยัง Elasticsearch
