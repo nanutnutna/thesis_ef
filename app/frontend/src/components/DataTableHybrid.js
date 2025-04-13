@@ -14,7 +14,7 @@ const DataTableCombine = ({ data }) => {
             <th style={styles.header}>ข้อมูลอ้างอิง</th>
             <th style={styles.header}>วันที่มีผล</th>
             <th style={styles.header}>ประเภทแฟกเตอร์</th>
-            <th style={styles.header}>คะแนน</th>
+            <th style={styles.header}>คะแนนการค้นหา</th>
           </tr>
         </thead>
         <tbody>
