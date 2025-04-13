@@ -12,6 +12,7 @@ load_dotenv()
 CLOUD_ID = os.getenv("ELASTIC_CLOUD_ID")
 API_KEY = os.getenv("ELASTIC_API_KEY")
 INDEX_NAME = 'thai_hybrid_search_ef'
+INDEX_NAME2 = 'hybrid_search_ef'
 es = Elasticsearch(cloud_id=CLOUD_ID,api_key=API_KEY)
 model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
 
@@ -98,7 +99,7 @@ async def search(query: str = Query(...,description="Hybrid Search",example="ก
         # แปลงผลลัพธ์ให้อยู่ในรูปแบบที่ต้องการ
         results = []
         for hit in response["hits"]["hits"]:
-            no_vector = {k: v for k, v in hit["_source"].items() if k != "text_vector"}
+            no_vector = {k: v for k, v in hit["_source"].items() if k not in ["text_vector","context_vector"]}
             result = {
                 "id": hit["_id"],
                 "score": hit["_score"],
@@ -118,42 +119,46 @@ async def search(query: str = Query(...,description="Hybrid Search",example="ก
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
     
 
-@router.get("/hybrid-search-rrf")
+@router.get("/hybrid-search-rrf") 
 async def search_rrf(query: str = Query(..., description="Hybrid Search with RRF", example="ก๊าซหุงต้ม")):
     try:
         # สร้าง embedding สำหรับคำค้นหา
         query_vector = model.encode(query).tolist()
         
-        # สร้าง query แบบ RRF
+        # สร้าง query แบบ RRF ตามไวยากรณ์ของ Elasticsearch 8.x
         search_query = {
-            "size": 5,  # จำนวนผลลัพธ์ที่ต้องการ
-            "rrf": {
-                "rank_window_size": 10,  # ขนาดหน้าต่างการจัดอันดับ (เดิมคือ window_size)
-                "rank_constant": 20,     # ค่าคงที่ในการคำนวณคะแนน RRF
-                "queries": [
-                    # คำสั่งค้นหาแบบ kNN
-                    {
-                        "knn": {
-                            "field": "text_vector",
-                            "query_vector": query_vector,
-                            "k": 10,
-                            "num_candidates": 100
+            "size": 5,
+            "retriever": {
+                "rrf": {
+                    "retrievers": [
+                        {
+                            "standard": {
+                                "query": {
+                                    "multi_match": {
+                                        "query": query,
+                                        "fields": ["ชื่อ^3", "รายละเอียด^2"]
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "knn": {
+                                "field": "text_vector",
+                                "query_vector": query_vector,
+                                "k": 10,
+                                "num_candidates": 100
+                            }
                         }
-                    },
-                    # คำสั่งค้นหาแบบ text
-                    {
-                        "multi_match": {
-                            "query": query,
-                            "fields": ["ชื่อ^3", "รายละเอียด^2"]
-                        }
-                    }
-                ]
+                    ],
+                    "rank_window_size": 10,
+                    "rank_constant": 20
+                }
             }
         }
         
         # ส่งคำขอค้นหาไปยัง Elasticsearch
         start_time = time.time()
-        response = es.search(index=INDEX_NAME, body=search_query)
+        response = es.search(index=INDEX_NAME2, body=search_query)
         end_time = time.time()
         
         # แปลงผลลัพธ์ให้อยู่ในรูปแบบที่ต้องการ
@@ -164,11 +169,9 @@ async def search_rrf(query: str = Query(..., description="Hybrid Search with RRF
                 "id": hit["_id"],
                 "score": hit["_score"],
                 **no_vector
-                #**hit["_source"]  # แยกข้อมูลทั้งหมดจาก _source
             }
             results.append(result)
-        
-        # สร้าง response
+
         return {
             "total": response["hits"]["total"]["value"],
             "took": end_time - start_time,
