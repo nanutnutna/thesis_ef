@@ -3,3 +3,5 @@
 *.log
 images/
 **/__pycache__/
+*.xlsx
+**.env
