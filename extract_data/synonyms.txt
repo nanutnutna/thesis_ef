@@ -228,3 +228,4 @@ Toluene, โทลูอีน, เมทิลเบนซีน
 ไม้ยางพาราท่อนสด, ไม้ยางพาราสด, ท่อนไม้ยางพารา, Fresh rubberwood log, Rubberwood log, Fresh timber
 ไม้ยางพาราอัดประสาน, ไม้อัดประสาน, Laminated rubberwood, Engineered timber
 ไม้ยางพาราแปรรูป, ไม้แปรรูป, ยางพาราแปรรูป, Processed rubberwood, Rubberwood lumber, Timber produc
+รถบรรทุก,รถสิบล้อ,รถหกล้อ,รถพ่วง,Truck,Lorry,Cargo vehicle

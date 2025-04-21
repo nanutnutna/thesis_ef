@@ -20,7 +20,7 @@ model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
 FIELDS = ["ชื่อ^3", "รายละเอียด^2"]
 BM25_WEIGHT = 0.6
 VECTOR_WEIGHT = 1 - BM25_WEIGHT
-SEARCH_SIZE = 10
+SEARCH_SIZE = 20
 
 # class SearchRequest(BaseModel):
 #     query: str
