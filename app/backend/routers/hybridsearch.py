@@ -3,17 +3,23 @@ from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from elasticsearch import Elasticsearch
 from sentence_transformers import SentenceTransformer
-import json
 import os
 import time
 from dotenv import load_dotenv
 
 load_dotenv()
-CLOUD_ID = os.getenv("ELASTIC_CLOUD_ID")
-API_KEY = os.getenv("ELASTIC_API_KEY")
-INDEX_NAME = 'thai_hybrid_search_ef'
-INDEX_NAME2 = 'hybrid_search_ef'
-es = Elasticsearch(cloud_id=CLOUD_ID,api_key=API_KEY)
+ELASTIC_ID = os.getenv("ELASTIC_ID")
+ELASTIC_PW = os.getenv("ELASTIC_PW")
+INDEX_NAME = 'hybrid_search_ef'
+
+
+es = Elasticsearch(
+    "https://localhost:9200",
+    basic_auth=(ELASTIC_ID, ELASTIC_PW),
+    ca_certs="C:/Users/Nattapot/Documents/elasticsearch-8.17.0/config/certs/http_ca.crt"
+)
+
+
 model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
 
 
@@ -158,7 +164,7 @@ async def search_rrf(query: str = Query(..., description="Hybrid Search with RRF
         
         # ส่งคำขอค้นหาไปยัง Elasticsearch
         start_time = time.time()
-        response = es.search(index=INDEX_NAME2, body=search_query)
+        response = es.search(index=INDEX_NAME, body=search_query)
         end_time = time.time()
         
         # แปลงผลลัพธ์ให้อยู่ในรูปแบบที่ต้องการ
