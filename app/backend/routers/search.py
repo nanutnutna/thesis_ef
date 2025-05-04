@@ -1,26 +1,23 @@
 from fastapi import APIRouter,HTTPException,UploadFile,Query
-from elasticsearch import Elasticsearch
 import pandas as pd
 from io import BytesIO
 from schemas import Document
 import numpy as np
 from langchain_huggingface import HuggingFaceEmbeddings
 import datetime
+from elastic_connection import ElasticsearchConnection
+
+
+INDEX_NAME = "ef1"
 
 router = APIRouter()
-es = Elasticsearch("https://localhost:9200",
-                   basic_auth=("elastic","JODDaUKomoKuPHFM2zEc"),
-                   ca_certs="C:/Users/Nattapot/Documents/elasticsearch-8.17.0/config/certs/http_ca.crt"
-)
+es = ElasticsearchConnection.get_instance()
+embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
 
 # es = Elasticsearch(
 #     "https://201b20f220fd4642a18ad35f13021fe5.asia-southeast1.gcp.elastic-cloud.com:443",
 #     api_key="Um5jU0FKVUJLcWtQQjJ6NzRNa2Q6MzhwRzNIaHVTdXVIOGZVSm16TElGQQ=="
 # )
-
-embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
-
-INDEX_NAME = "ef1"
 
 
 @router.get("/creation-date")

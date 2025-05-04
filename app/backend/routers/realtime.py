@@ -1,15 +1,11 @@
 from fastapi import APIRouter,WebSocket,WebSocketDisconnect
-from elasticsearch import Elasticsearch
-
-router = APIRouter()
-es = Elasticsearch("https://localhost:9200",
-                   basic_auth=("elastic","JODDaUKomoKuPHFM2zEc"),
-                   ca_certs="C:/Users/Nattapot/Documents/elasticsearch-8.17.0/config/certs/http_ca.crt"
-)
+from elastic_connection import ElasticsearchConnection
 
 INDEX_NAME = "document_data"
 
+es = ElasticsearchConnection.get_instance()
 
+router = APIRouter()
 @router.websocket("/ws/search")
 async def websocket_search(websocket: WebSocket):
     await websocket.accept()

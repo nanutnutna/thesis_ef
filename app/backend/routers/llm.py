@@ -3,23 +3,15 @@ from langchain.chains import RetrievalQA
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_elasticsearch import ElasticsearchStore
 from langchain_ollama import OllamaLLM
-from elasticsearch import Elasticsearch
 import urllib3
+from elastic_connection import ElasticsearchConnection
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 INDEX_NAME = "emission_data_upsert"
 
 router = APIRouter()
-
-# เชื่อมต่อ Elasticsearch
-es = Elasticsearch(
-    "https://localhost:9200",
-    basic_auth=("elastic", "JODDaUKomoKuPHFM2zEc"),
-    ca_certs="C:/Users/Nattapot/Documents/elasticsearch-8.17.0/config/certs/http_ca.crt"
-)
-
-# ตั้งค่า Embedding
+es = ElasticsearchConnection.get_instance()
 embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
 
 # สร้าง ElasticVectorSearch

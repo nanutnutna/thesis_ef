@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import json
 
 
-load_dotenv()
+load_dotenv("../.env")
 ELASTIC_ID = os.getenv("ELASTIC_ID")
 ELASTIC_PW = os.getenv("ELASTIC_PW")
 INDEX_NAME = "hybrid_search_ef"

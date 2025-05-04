@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routers import search,hybridsearch
+from routers import search,hybridsearch,cfplabel
 from fastapi.middleware.cors import CORSMiddleware
 # from fastapi.staticfiles import StaticFiles
 
@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 app.include_router(search.router)
 app.include_router(hybridsearch.router)
+app.include_router(cfplabel.router)
 # app.include_router(llm.router)
 
 app.add_middleware(

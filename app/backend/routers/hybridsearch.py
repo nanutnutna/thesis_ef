@@ -1,53 +1,21 @@
 from fastapi import HTTPException,Query, APIRouter
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
-from elasticsearch import Elasticsearch
 from sentence_transformers import SentenceTransformer
-import os
 import time
-from dotenv import load_dotenv
+from elastic_connection import ElasticsearchConnection
 
-load_dotenv()
-ELASTIC_ID = os.getenv("ELASTIC_ID")
-ELASTIC_PW = os.getenv("ELASTIC_PW")
+
 INDEX_NAME = 'hybrid_search_ef'
-
-
-es = Elasticsearch(
-    "https://localhost:9200",
-    basic_auth=(ELASTIC_ID, ELASTIC_PW),
-    ca_certs="C:/Users/Nattapot/Documents/elasticsearch-8.17.0/config/certs/http_ca.crt"
-)
-
-
-model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-
-
 FIELDS = ["ชื่อ^3", "รายละเอียด^2"]
 BM25_WEIGHT = 0.6
 VECTOR_WEIGHT = 1 - BM25_WEIGHT
 SEARCH_SIZE = 20
 
-# class SearchRequest(BaseModel):
-#     query: str
-#     fields: Optional[List[str]] = ["ชื่อ^3", "รายละเอียด^2"]
-#     bm25_weight: Optional[float] = 0.5
-#     vector_weight: Optional[float] = 0.5
-#     size: Optional[int] = 10
-
-class SearchResponse(BaseModel):
-    total: int
-    took: float
-    results: List[Dict[str, Any]]
-
-class EncodeRequest(BaseModel):
-    text: str
-
-class EncodeResponse(BaseModel):
-    vector: List[float]
-
-
+es = ElasticsearchConnection.get_instance()
+model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
 router = APIRouter()
+
 @router.get("/hybrid-search")
 async def search(query: str = Query(...,description="Hybrid Search",example="ก๊าซหุงต้ม")):
     try:
@@ -186,15 +154,6 @@ async def search_rrf(query: str = Query(..., description="Hybrid Search with RRF
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
-
-
-@router.post("/encode", response_model=EncodeResponse)
-async def encode_text(request: EncodeRequest):
-    try:
-        vector = model.encode(request.text).tolist()
-        return {"vector": vector}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาดในการสร้าง vector: {str(e)}")
     
 @router.get("/health")
 async def health_check():
