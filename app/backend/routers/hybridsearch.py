@@ -186,3 +186,45 @@ async def get_index_info():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
+    
+
+@router.get("/hybrid-search-test")
+async def search(query: str = Query(...,description="Hybrid Search",example="ก๊าซหุงต้ม")):
+    try:        
+        # สร้าง query แบบ hybrid
+        search_query = {
+            "query": {
+                    "knn": {
+                        "field": "text_vector",
+                        "query_vector": model.encode(query).tolist(),
+                        "k": 10,
+                        "num_candidates": 100,
+                    }
+                },"size": SEARCH_SIZE #size                        
+            }
+        # ส่งคำขอค้นหาไปยัง Elasticsearch
+        start_time = time.time()
+        response = es.search(index=INDEX_NAME, body=search_query)
+        end_time = time.time()
+        
+        # แปลงผลลัพธ์ให้อยู่ในรูปแบบที่ต้องการ
+        results = []
+        for hit in response["hits"]["hits"]:
+            no_vector = {k: v for k, v in hit["_source"].items() if k not in ["text_vector","context_vector"]}
+            result = {
+                "id": hit["_id"],
+                "score": hit["_score"],
+                **no_vector
+                #**hit["_source"]  # แยกข้อมูลทั้งหมดจาก _source
+            }
+            results.append(result)
+        
+        # สร้าง response
+        return {
+            "total": response["hits"]["total"]["value"],
+            "took": end_time - start_time,
+            "results": results
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"เกิดข้อผิดพลาด: {str(e)}")
