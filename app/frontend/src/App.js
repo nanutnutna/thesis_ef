@@ -10,6 +10,7 @@ import SearchPageCLP from './pages/SearchPageCLP';
 import SearchPageCombine from './pages/SearchPageCombine';
 import SearchPageEmbedding from "./pages/SearchPageEmbedding";
 import SearchPageHybrid from "./pages/SearchPageHybrid";
+import SearchPageCFPLabel from './pages/SearchPageCFPLabel';
 import Dictionary from './pages/Dictionary';
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
         <Route path="/search-embedding" element={<SearchPageEmbedding />} />
         <Route path="/dictionary" element={<Dictionary />} />
         <Route path="/hybrid-search" element={<SearchPageHybrid  />} />
+        <Route path="/cfplabel" element={<SearchPageCFPLabel />} />
       </Routes>
     </Router>
   );

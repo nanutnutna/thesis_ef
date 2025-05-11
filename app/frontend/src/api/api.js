@@ -69,3 +69,10 @@ export const searchDataEmbedding = (query) => {
 export const searchHybrid = (query) => {
   return api.get(`/hybrid-search?query=${encodeURIComponent(query)}`);
 };
+
+// cfp-label-search
+export const searchDataCFPlabel = (query) => {
+  return api.get(`/search-cfplabel?query=${encodeURIComponent(query)}`);
+};
+
+//search-cfplabel?query=

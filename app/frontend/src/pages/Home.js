@@ -101,6 +101,14 @@ function Home() {
         >
           Hybrid
         </Link>
+        <Link
+          to="/cfplabel"
+          style={styles.button}
+          onMouseEnter={(e) => (e.target.style.backgroundColor = styles.buttonHover.backgroundColor)}
+          onMouseLeave={(e) => (e.target.style.backgroundColor = styles.button.backgroundColor)}
+        >
+          CFP Label
+        </Link>
       </div>
     </div>
   );

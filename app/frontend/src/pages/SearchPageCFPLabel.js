@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { searchHybrid } from "../api/api";
-import DataTableHybrid from '../components/DataTableHybrid';
+import { searchDataCFPlabel } from "../api/api";
+import DataTableCFPLabel from '../components/DataTableCFPLabel';
 
-const SearchPageHybrid = () => {
+const SearchPageCFPLabel = () => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -15,8 +15,8 @@ const SearchPageHybrid = () => {
     setError(null);
     
     try {
-      // เรียกใช้ searchHybrid ผ่าน api object
-      const response = await searchHybrid(query);
+      // เรียกใช้ searchDataCFPlabel ผ่าน api object
+      const response = await searchDataCFPlabel(query);
       console.log('API Response:', response);
       
       const data = response.data || response;
@@ -68,7 +68,7 @@ const SearchPageHybrid = () => {
         results.length > 0 && (
           <div style={styles.resultsContainer}>
             <h3>ผลการค้นหา</h3>
-            <DataTableHybrid data={results} />
+            <DataTableCFPLabel data={results} />
           </div>
         )
       )}
@@ -149,4 +149,4 @@ const styles = {
   }
 };
 
-export default SearchPageHybrid;
+export default SearchPageCFPLabel;

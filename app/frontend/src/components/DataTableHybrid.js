@@ -1,6 +1,6 @@
 import React from 'react';
 
-const DataTableCombine = ({ data }) => {
+const DataTableHybrid = ({ data }) => {
   return (
     <div style={styles.tableContainer}>
       <table style={styles.table}>
@@ -74,4 +74,4 @@ const styles = {
   },
 };
 
-export default DataTableCombine;
+export default DataTableHybrid;
