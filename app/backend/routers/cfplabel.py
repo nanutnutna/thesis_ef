@@ -1,7 +1,4 @@
-from fastapi import HTTPException,Query, APIRouter
-from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
-import time
+from fastapi import Query, APIRouter
 from elastic_connection import ElasticsearchConnection
 
 

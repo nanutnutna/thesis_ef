@@ -19,9 +19,9 @@ es = Elasticsearch(
 
 
 if es.ping():
-    print("เชื่อมต่อกับ Elastic Cloud สำเร็จ!")
+    print("Successfully connected to Elastic!")
 else:
-    print("เชื่อมต่อไม่สำเร็จ กรุณาตรวจสอบข้อมูลการเชื่อมต่อ")
+    print("Connection failed. Please check your connection information")
 
 thai_synonyms = ["Agriculture, agricultural, farming, เกษตร, เกษตรกรรม, กสิกรรม, การเพาะปลูก, การทำไร่ทำนา, การทำการเกษตร",
 "Anthracite, แอนทราไซต์, ถ่านหินชนิดแข็ง, ถ่านหินคุณภาพสูง",
@@ -328,9 +328,9 @@ index_settings = {
 
 if not es.indices.exists(index=INDEX_NAME):
     es.indices.create(index=INDEX_NAME, body=index_settings)
-    print(f"สร้าง index '{INDEX_NAME}' เรียบร้อย")
+    print(f"Index '{INDEX_NAME}' created successfully")
 else:
-    print(f"index '{INDEX_NAME}' มีอยู่แล้ว")
+    print(f"Index '{INDEX_NAME}' already exists")
 
 
 def load_json():
@@ -357,4 +357,4 @@ def index_documents(documents):
 
 
 num_docs = index_documents(load_json())
-print(f"เพิ่มข้อมูลตัวอย่าง {num_docs} รายการเรียบร้อย")
+print(f"Added {num_docs} data items successfully")
