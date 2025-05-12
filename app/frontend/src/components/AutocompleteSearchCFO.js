@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { fetchAutocompleteCFO, searchDataCFO } from '../api/api';
 import DataTable from './DataTable';
+import { Link } from 'react-router-dom';
 
 const AutocompleteSearchCFO = () => {
   const [query, setQuery] = useState('');
@@ -74,133 +75,90 @@ const AutocompleteSearchCFO = () => {
   }, [query, handleSearch]);
 
   return (
-    <div style={styles.container}>
-      <div style={styles.searchBoxContainer}>
-        <h1 style={styles.header}>Emission Factor (CFO: Carbon Footprint for Organization)</h1>
-        <div style={styles.searchWrapper}>
-          <span style={styles.searchIcon}>🔍</span>
-          <input
-            type="text"
-            placeholder="Type for search..."
-            value={query}
-            onChange={handleChange}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-            style={styles.searchBox}
-          />
+    <div className="min-h-screen bg-gradient-to-br from-gray-200 to-teal-600 p-4">
+      {/* ปุ่มกลับหน้า Home ที่มุมซ้ายบน */}
+      <div className="absolute top-4 left-4">
+        <Link 
+          to="/" 
+          className="flex items-center bg-white text-teal-700 hover:bg-teal-50 font-medium py-2 px-4 rounded-lg shadow-md transition-all duration-300 border-2 border-teal-600"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Home
+        </Link>
+      </div>
+
+      <div className="max-w-7xl mx-auto bg-gray-100 rounded-xl shadow-lg p-6 mt-16">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-teal-800 text-center mb-6 flex items-center justify-center">
+            <span className="mr-2 text-4xl">🌱</span>
+            Emission Factor (CFO: Carbon Footprint for Organization)
+          </h1>
+          
+          <div className="relative w-full max-w-3xl mx-auto">
+            <div className="flex items-center bg-white border border-teal-500 rounded-lg overflow-hidden shadow-md">
+              <span className="pl-4 text-xl text-gray-500">🔍</span>
+              <input
+                type="text"
+                placeholder="Type for search..."
+                value={query}
+                onChange={handleChange}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+                className="w-full py-4 px-3 text-lg outline-none"
+              />
+            </div>
+            
+            {/* แสดงคำแนะนำ */}
+            {isFocused && suggestions.length > 0 && (
+              <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                <ul className="divide-y divide-gray-200">
+                  {suggestions.map((suggestion, index) => (
+                    <li
+                      key={index}
+                      className="px-4 py-3 hover:bg-teal-50 cursor-pointer"
+                      onMouseDown={() => handleSelectSuggestion(suggestion)}
+                    >
+                      {suggestion}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
         </div>
-        {/* แสดงคำแนะนำ */}
-        {isFocused && suggestions.length > 0 && (
-          <div style={styles.suggestionsBox}>
-            <ul style={styles.suggestionsList}>
-              {suggestions.map((suggestion, index) => (
-                <li
-                  key={index}
-                  style={styles.suggestionItem}
-                  onMouseDown={() => handleSelectSuggestion(suggestion)}
-                >
-                  {suggestion}
-                </li>
-              ))}
-            </ul>
+
+        {/* แสดง Error */}
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6">
+            <span className="block sm:inline">{error}</span>
+          </div>
+        )}
+
+        {/* แสดงสถานะการโหลดครั้งแรก */}
+        {isInitialLoad && (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-600"></div>
+            <span className="ml-3 text-lg text-teal-700">Loading initial data...</span>
+          </div>
+        )}
+
+        {/* แสดงผลลัพธ์ในตาราง */}
+        {!isInitialLoad && results.length > 0 ? (
+          <div className="w-full overflow-hidden">
+            <div className="border border-gray-300 rounded-lg overflow-hidden shadow-lg">
+              <DataTable data={results} />
+            </div>
+          </div>
+        ) : !isInitialLoad && (
+          <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-lg text-gray-600">No data available</p>
           </div>
         )}
       </div>
-
-      {/* แสดง Error */}
-      {error && <p style={styles.error}>{error}</p>}
-
-      {/* แสดงสถานะการโหลดครั้งแรก */}
-      {isInitialLoad && <p>Loading initial data...</p>}
-
-      {/* แสดงผลลัพธ์ในตาราง */}
-      {results.length > 0 ? (
-        <div style={styles.tableWrapper}>
-          <DataTable data={results} />
-        </div>
-      ) : (
-        <p>No data available</p>
-      )}
     </div>
   );
-};
-
-const styles = {
-  header: {
-    fontSize: '24px',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: '20px',
-    color: '#333',
-  },
-  container: {
-    padding: '40px 20px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    backgroundColor: '#f9fafc',
-  },
-  searchBoxContainer: {
-    width: '80%',
-    maxWidth: '800px',
-    marginBottom: '20px',
-    position: 'relative',
-  },
-  searchWrapper: {
-    display: 'flex',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    border: '1px solid #ccc',
-    borderRadius: '8px',
-    overflow: 'hidden',
-    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-  },
-  searchIcon: {
-    padding: '0 10px',
-    fontSize: '1.2rem',
-    color: '#888',
-  },
-  searchBox: {
-    width: '100%',
-    padding: '12px 15px',
-    fontSize: '1rem',
-    border: 'none',
-    outline: 'none',
-  },
-  suggestionsBox: {
-    position: 'absolute',
-    top: '100%',
-    left: 0,
-    width: '100%',
-    backgroundColor: '#fff',
-    border: '1px solid #ccc',
-    borderRadius: '8px',
-    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    marginTop: '4px',
-    maxHeight: '300px',
-    overflowY: 'auto',
-    zIndex: 1000,
-  },
-  suggestionsList: {
-    listStyle: 'none',
-    margin: 0,
-    padding: 0,
-  },
-  suggestionItem: {
-    padding: '12px',
-    cursor: 'pointer',
-    borderBottom: '1px solid #e0e0e0',
-  },
-  error: {
-    color: 'red',
-    marginTop: '10px',
-  },
-  tableWrapper: {
-    width: '100%',
-    maxWidth: '1000px',
-    marginTop: '20px',
-    overflowX: 'auto',
-  },
 };
 
 export default AutocompleteSearchCFO;

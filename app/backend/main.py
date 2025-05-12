@@ -24,4 +24,4 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to Elasticsearch FastAPI API"}
+    return {"message": "Welcome to Emission Factor Search"}

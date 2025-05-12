@@ -5,7 +5,7 @@ const api = axios.create({
 });
 
 // ตรวจสอบว่ามีการ export ฟังก์ชัน testAPI
-export const testAPI = () => {
+export const homeAPI = () => {
   return api.get('/');
 };
 
@@ -74,5 +74,3 @@ export const searchHybrid = (query) => {
 export const searchDataCFPlabel = (query) => {
   return api.get(`/search-cfplabel?query=${encodeURIComponent(query)}`);
 };
-
-//search-cfplabel?query=

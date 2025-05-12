@@ -27,7 +27,8 @@ async def search(query: str = Query(None, description="CFP-Label Search",example
                         "operator": "and",
                         "analyzer": "thai_eng_analyzer"
                     }
-                }
+                },
+                "size": 50
             })
         
         # จัดการผลลัพธ์

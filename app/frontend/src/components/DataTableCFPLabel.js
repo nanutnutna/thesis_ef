@@ -14,11 +14,11 @@ const DataTableCFPLabel = ({ data }) => {
             <th style={styles.header}>ApproveDate</th>
             <th style={styles.header}>EF</th>
             <th style={styles.header}>Unit</th>
-            <th style={styles.header}>Scope</th>
+            {/* <th style={styles.header}>Scope</th> */}
             {/* <th style={styles.header}>Contract</th>
             <th style={styles.header}>Phone</th>
             <th style={styles.header}>Mail</th> */}
-            <th style={styles.header}>Company_name</th>
+            <th style={styles.header}>Company</th>
             {/* <th style={styles.header}>เปลี่ยนแปลง</th> */}
           </tr>
         </thead>
@@ -33,7 +33,7 @@ const DataTableCFPLabel = ({ data }) => {
               <td style={styles.cell}>{item.ApproveDate || '-'}</td>
               <td style={styles.cell}>{item.EF || '-'}</td>
               <td style={styles.cell}>{item.Unit || '-'}</td>
-              <td style={styles.cell}>{item.Scope || '-'}</td>
+              {/* <td style={styles.cell}>{item.Scope || '-'}</td> */}
               {/* <td style={styles.cell}>{item.Contract || '-'}</td>
               <td style={styles.cell}>{item.Phone || '-'}</td>
               <td style={styles.cell}>{item.Mail || '-'}</td> */}
