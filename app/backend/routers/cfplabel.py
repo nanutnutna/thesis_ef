@@ -8,7 +8,7 @@ es = ElasticsearchConnection.get_instance()
 
 router = APIRouter()
 @router.get("/search-cfplabel")
-async def search(query: str = Query(None, description="CFP-Label Search",example="ก๊าซหุงต้ม")):
+async def search(query: str = Query(None, description="CFP-Label Search")):
     try:
         #query
         if not query:

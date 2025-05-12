@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { searchDataCFPlabel } from "../api/api";
 import DataTableCFPLabel from '../components/DataTableCFPLabel';
 import { Link } from 'react-router-dom';
@@ -8,9 +8,44 @@ const SearchPageCFPLabel = () => {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  // โหลดข้อมูลทั้งหมดเมื่อโหลดหน้าครั้งแรก
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const response = await searchDataCFPlabel('');
+        console.log('Initial data load:', response);
+        
+        const data = response.data || response;
+        
+        if (Array.isArray(data)) {
+          setResults(data);
+        } else if (data && typeof data === 'object' && data.results && Array.isArray(data.results)) {
+          setResults(data.results);
+        } else {
+          console.error('Unexpected response format:', data);
+          setResults([]);
+          setError('รูปแบบข้อมูลที่ได้รับไม่ถูกต้อง');
+        }
+      } catch (err) {
+        console.error('Error loading initial data:', err);
+        setError('ไม่สามารถโหลดข้อมูลเริ่มต้นได้ กรุณาลองใหม่อีกครั้ง');
+        setResults([]);
+      } finally {
+        setLoading(false);
+        setIsInitialLoad(false);
+      }
+    };
+    
+    fetchInitialData();
+  }, []);
 
   const handleSearch = async () => {
-    if (!query.trim()) return;
+    // อนุญาตให้ส่งคำค้นหาว่างได้ เพื่อโหลดข้อมูลทั้งหมด
     
     setLoading(true);
     setError(null);
@@ -58,7 +93,7 @@ const SearchPageCFPLabel = () => {
       <div className="max-w-7xl mx-auto bg-gray-100 rounded-xl shadow-lg p-6 mt-16">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-teal-800 text-center mb-6 flex items-center justify-center">
-            <span className="mr-2 text-4xl">🌿</span>
+            <span className="mr-2 text-4xl">🛍️</span>
             Emission Factor (CFP Label: Carbon Footprint for Thailand Product)
           </h1>
           
@@ -70,7 +105,7 @@ const SearchPageCFPLabel = () => {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  placeholder="พิมพ์คำค้นหา..."
+                  placeholder="พิมพ์คำค้นหา... (เว้นว่างเพื่อดูทั้งหมด)"
                   className="w-full py-4 px-6 text-lg border border-teal-500 rounded-l-lg shadow-md outline-none"
                 />
                 <button 
@@ -94,14 +129,17 @@ const SearchPageCFPLabel = () => {
           {loading && (
             <div className="flex justify-center items-center py-8">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-600"></div>
-              <span className="ml-3 text-lg text-teal-700">กำลังค้นหา...</span>
+              <span className="ml-3 text-lg text-teal-700">กำลังโหลดข้อมูล...</span>
             </div>
           )}
 
           {/* แสดงผลลัพธ์ในตาราง */}
           {!loading && results.length > 0 && (
             <div className="w-full">
-              <h3 className="text-xl font-semibold text-teal-800 mb-4">ผลการค้นหา</h3>
+              <h3 className="text-xl font-semibold text-teal-800 mb-4">
+                {query.trim() ? `ผลการค้นหาสำหรับ "${query}"` : 'แสดงข้อมูลทั้งหมด'}
+                <span className="ml-2 text-gray-600 text-base">({results.length} รายการ)</span>
+              </h3>
               <div className="border border-gray-300 rounded-lg overflow-hidden shadow-lg">
                 <DataTableCFPLabel data={results} />
               </div>
@@ -109,9 +147,11 @@ const SearchPageCFPLabel = () => {
           )}
 
           {/* แสดงข้อความเมื่อไม่พบผลลัพธ์ */}
-          {!loading && query && results.length === 0 && (
+          {!loading && results.length === 0 && !isInitialLoad && (
             <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200 max-w-3xl mx-auto">
-              <p className="text-lg text-gray-600">ไม่พบข้อมูลสำหรับ "{query}"</p>
+              <p className="text-lg text-gray-600">
+                {query.trim() ? `ไม่พบข้อมูลสำหรับ "${query}"` : 'ไม่พบข้อมูลในระบบ'}
+              </p>
             </div>
           )}
         </div>

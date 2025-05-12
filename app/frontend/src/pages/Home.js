@@ -24,7 +24,7 @@ function Home() {
 
   const menuItems = [
     { name: 'Carbon Footprint for Organization', path: '/cfo', icon: '🏭' },
-    { name: 'Carbon Footprint for Product', path: '/cfp', icon: '♻️' },
+    { name: 'Carbon Footprint for Product', path: '/cfp', icon: '🏷️' },
     { name: 'Carbon Footprint for Thailand Product', path: '/cfplabel', icon: '🛍️' },
     // { name: 'Keyword-Search', path: '/search', icon: '🔍' },
     // { name: 'Semantic-Search', path: '/combine', icon: '🔍' },

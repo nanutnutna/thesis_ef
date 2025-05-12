@@ -92,7 +92,7 @@ const AutocompleteSearchCFO = () => {
       <div className="max-w-7xl mx-auto bg-gray-100 rounded-xl shadow-lg p-6 mt-16">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-teal-800 text-center mb-6 flex items-center justify-center">
-            <span className="mr-2 text-4xl">🌱</span>
+            <span className="mr-2 text-4xl">🏭</span>
             Emission Factor (CFO: Carbon Footprint for Organization)
           </h1>
           
