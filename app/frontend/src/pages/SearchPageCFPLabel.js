@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { searchDataCFPlabel } from "../api/api";
 import DataTableCFPLabel from '../components/DataTableCFPLabel';
 import { Link } from 'react-router-dom';
+import { debounce } from 'lodash'; // นำเข้า debounce จาก lodash
 
 const SearchPageCFPLabel = () => {
   const [query, setQuery] = useState('');
   const [allResults, setAllResults] = useState([]); // เก็บผลลัพธ์ทั้งหมด
   const [displayedResults, setDisplayedResults] = useState([]); // ผลลัพธ์ที่แสดงในหน้าปัจจุบัน
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
   
   // การตั้งค่าสำหรับ pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -33,12 +33,42 @@ const SearchPageCFPLabel = () => {
     }
   }, [allResults, currentPage, itemsPerPage]);
 
-  // โหลดข้อมูลทั้งหมดเมื่อโหลดหน้าครั้งแรก
+  // สร้างฟังก์ชัน debounced search เพื่อไม่ให้ค้นหาบ่อยเกินไป
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const debouncedSearch = useCallback(
+    debounce(async (searchQuery) => {
+      setIsLoading(true);
+      try {
+        const response = await searchDataCFPlabel(searchQuery);
+        console.log('Search Results:', response);
+        
+        const data = response.data || response;
+        
+        if (Array.isArray(data)) {
+          setAllResults(data);
+        } else if (data && typeof data === 'object' && data.results && Array.isArray(data.results)) {
+          setAllResults(data.results);
+        } else {
+          console.error('Unexpected response format:', data);
+          setAllResults([]);
+          setError('The data format received is not correct');
+        }
+        setCurrentPage(1); // กลับไปที่หน้าแรกเมื่อผลลัพธ์การค้นหาเปลี่ยน
+      } catch (err) {
+        console.error('Search Error:', err);
+        setError('Unable to search. Please try again.');
+        setAllResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 300), // รอ 300ms หลังจากหยุดพิมพ์
+    []
+  );
+
+  // โหลดข้อมูลเริ่มต้น
   useEffect(() => {
     const fetchInitialData = async () => {
-      setLoading(true);
-      setError(null);
-      
+      setIsLoading(true);
       try {
         const response = await searchDataCFPlabel('');
         console.log('Initial data load:', response);
@@ -52,51 +82,25 @@ const SearchPageCFPLabel = () => {
         } else {
           console.error('Unexpected response format:', data);
           setAllResults([]);
-          setError('รูปแบบข้อมูลที่ได้รับไม่ถูกต้อง');
+          setError('The data format received is not correct.');
         }
       } catch (err) {
         console.error('Error loading initial data:', err);
-        setError('ไม่สามารถโหลดข้อมูลเริ่มต้นได้ กรุณาลองใหม่อีกครั้ง');
+        setError('Failed to load initial data. Please try again.');
         setAllResults([]);
       } finally {
-        setLoading(false);
-        setIsInitialLoad(false);
+        setIsLoading(false);
       }
     };
     
     fetchInitialData();
   }, []);
 
-  const handleSearch = async () => {
-    // อนุญาตให้ส่งคำค้นหาว่างได้ เพื่อโหลดข้อมูลทั้งหมด
-    
-    setLoading(true);
-    setError(null);
-    setCurrentPage(1); // กลับไปที่หน้าแรกเมื่อทำการค้นหาใหม่
-    
-    try {
-      // เรียกใช้ searchDataCFPlabel ผ่าน api object
-      const response = await searchDataCFPlabel(query);
-      console.log('API Response:', response);
-      
-      const data = response.data || response;
-      
-      if (Array.isArray(data)) {
-        setAllResults(data);
-      } else if (data && typeof data === 'object' && data.results && Array.isArray(data.results)) {
-        setAllResults(data.results);
-      } else {
-        console.error('Unexpected response format:', data);
-        setAllResults([]);
-        setError('รูปแบบข้อมูลที่ได้รับไม่ถูกต้อง');
-      }
-    } catch (err) {
-      console.error('Error searching hybrid:', err);
-      setError('ไม่สามารถค้นหาข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
-      setAllResults([]);
-    } finally {
-      setLoading(false);
-    }
+  // จัดการการเปลี่ยนแปลงใน Input และค้นหาแบบ Real-time
+  const handleChange = (e) => {
+    const value = e.target.value;
+    setQuery(value);
+    debouncedSearch(value);
   };
   
   // เปลี่ยนหน้า
@@ -120,7 +124,7 @@ const SearchPageCFPLabel = () => {
             : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
         }`}
       >
-        &laquo; ก่อนหน้า
+        &laquo; Previous
       </button>
     );
     
@@ -205,7 +209,7 @@ const SearchPageCFPLabel = () => {
             : 'bg-teal-100 text-teal-700 hover:bg-teal-200'
         }`}
       >
-        ถัดไป &raquo;
+        Next &raquo;
       </button>
     );
     
@@ -234,99 +238,91 @@ const SearchPageCFPLabel = () => {
             Emission Factor (CFP Label: Carbon Footprint for Thailand Product)
           </h1>
           
-          <div className="flex justify-center mb-8">
-            <div className="relative w-full max-w-3xl">
-              <div className="flex items-center">
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  placeholder="พิมพ์คำค้นหา... (เว้นว่างเพื่อดูทั้งหมด)"
-                  className="w-full py-4 px-6 text-lg border border-teal-500 rounded-l-lg shadow-md outline-none"
-                />
-                <button 
-                  onClick={handleSearch} 
-                  className="bg-teal-600 hover:bg-teal-700 text-white py-4 px-8 text-lg font-medium rounded-r-lg shadow-md transition-colors duration-300"
-                >
-                  ค้นหา
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* แสดง Error */}
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6 max-w-3xl mx-auto">
-              <span className="block sm:inline">{error}</span>
-            </div>
-          )}
-
-          {/* แสดงสถานะการโหลด */}
-          {loading && (
-            <div className="flex justify-center items-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-600"></div>
-              <span className="ml-3 text-lg text-teal-700">กำลังโหลดข้อมูล...</span>
-            </div>
-          )}
-
-          {/* แสดงผลลัพธ์ในตาราง */}
-          {!loading && allResults.length > 0 && (
-            <div className="w-full">
-              <h3 className="text-xl font-semibold text-teal-800 mb-4">
-                {query.trim() ? `ผลการค้นหาสำหรับ "${query}"` : 'แสดงข้อมูลทั้งหมด'}
-                <span className="ml-2 text-gray-600 text-base">({allResults.length} รายการ)</span>
-              </h3>
-              
-              {/* แสดงข้อมูลจำนวนรายการที่แสดงอยู่ */}
-              <div className="flex justify-between items-center mb-3">
-                <div className="text-sm text-gray-600">
-                  แสดงรายการที่ {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, allResults.length)} จากทั้งหมด {allResults.length} รายการ
-                </div>
-                <div className="flex items-center">
-                  <label htmlFor="itemsPerPage" className="text-sm text-gray-600 mr-2">รายการต่อหน้า:</label>
-                  <select 
-                    id="itemsPerPage"
-                    value={itemsPerPage}
-                    onChange={(e) => {
-                      setItemsPerPage(Number(e.target.value));
-                      setCurrentPage(1); // กลับไปหน้าแรกเมื่อเปลี่ยนจำนวนรายการต่อหน้า
-                    }}
-                    className="border border-gray-300 rounded px-2 py-1 text-sm"
-                  >
-                    <option value={10}>10</option>
-                    <option value={15}>15</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
-                  </select>
-                </div>
-              </div>
-              
-              <div className="border border-gray-300 rounded-lg overflow-hidden shadow-lg mb-4">
-                <DataTableCFPLabel data={displayedResults} />
-              </div>
-              
-              {/* แสดง Pagination */}
-              {totalPages > 1 && (
-                <div className="flex justify-center my-6">
-                  <div className="flex flex-wrap">
-                    {renderPaginationButtons()}
-                  </div>
+          <div className="relative w-full max-w-3xl mx-auto">
+            <div className="flex items-center bg-white border border-teal-500 rounded-lg overflow-hidden shadow-md">
+              <span className="pl-4 text-xl text-gray-500">🔍</span>
+              <input
+                type="text"
+                placeholder="Start typing to search..."
+                value={query}
+                onChange={handleChange}
+                className="w-full py-4 px-3 text-lg outline-none"
+              />
+              {isLoading && (
+                <div className="pr-4">
+                  <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-r-2 border-teal-600"></div>
                 </div>
               )}
             </div>
-          )}
-
-          {/* แสดงข้อความเมื่อไม่พบผลลัพธ์ */}
-          {!loading && allResults.length === 0 && !isInitialLoad && (
-            <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200 max-w-3xl mx-auto">
-              <p className="text-lg text-gray-600">
-                {query.trim() ? `ไม่พบข้อมูลสำหรับ "${query}"` : 'ไม่พบข้อมูลในระบบ'}
-              </p>
-            </div>
-          )}
+            <p className="text-sm text-gray-600 mt-2 ml-1">Results update automatically as you type</p>
+          </div>
         </div>
+
+        {/* แสดง Error */}
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6 max-w-3xl mx-auto">
+            <span className="block sm:inline">{error}</span>
+          </div>
+        )}
+
+        {/* แสดงผลลัพธ์ในตาราง */}
+        {!isLoading && allResults.length > 0 ? (
+          <div className="w-full">
+            <h3 className="text-xl font-semibold text-teal-800 mb-4">
+              {query.trim() ? `Search results for "${query}"` : 'All available data'}
+              <span className="ml-2 text-gray-600 text-base">({allResults.length} items)</span>
+            </h3>
+            
+            {/* Show information about currently displayed items */}
+            <div className="flex justify-between items-center mb-3">
+              <div className="text-sm text-gray-600">
+                Showing items {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, allResults.length)} of {allResults.length} total
+              </div>
+              <div className="flex items-center">
+                <label htmlFor="itemsPerPage" className="text-sm text-gray-600 mr-2">Items per page:</label>
+                <select 
+                  id="itemsPerPage"
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1); // Return to first page when changing items per page
+                  }}
+                  className="border border-gray-300 rounded px-2 py-1 text-sm"
+                >
+                  <option value={10}>10</option>
+                  <option value={15}>15</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="border border-gray-300 rounded-lg overflow-hidden shadow-lg mb-4">
+              <DataTableCFPLabel data={displayedResults} />
+            </div>
+            
+            {/* แสดง Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center my-6">
+                <div className="flex flex-wrap">
+                  {renderPaginationButtons()}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : !isLoading ? (
+          <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200 max-w-3xl mx-auto">
+            <p className="text-lg text-gray-600">
+              {query.trim() ? `No data found for "${query}"` : 'No data available'}
+            </p>
+          </div>
+        ) : (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-600"></div>
+            <span className="ml-3 text-lg text-teal-700">Loading data...</span>
+          </div>
+        )}
       </div>
     </div>
   );

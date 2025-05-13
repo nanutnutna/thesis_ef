@@ -16,19 +16,18 @@ async def search(query: str = Query(None, description="CFP-Label Search")):
                 "query": {
                     "match_all": {}
                 },
-                "size": 1000
+                "size": 2000
             })
         else:
             response = es.search(index=INDEX_NAME, body={
                 "query": {
                     "multi_match": {
                         "query": query,
-                        "fields": ["License^3","Name^2", "Detail","Industrials"],
+                        "fields": ["Name^3","License^2", "Detail","Industrials"],
                         "operator": "and",
                         "analyzer": "thai_eng_analyzer"
                     }
-                },
-                "size": 50
+                }
             })
         
         # จัดการผลลัพธ์

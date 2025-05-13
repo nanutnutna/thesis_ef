@@ -1,6 +1,4 @@
 from fastapi import HTTPException,Query, APIRouter
-from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
 from sentence_transformers import SentenceTransformer
 import time
 from elastic_connection import ElasticsearchConnection
