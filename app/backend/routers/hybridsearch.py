@@ -12,8 +12,9 @@ SEARCH_SIZE = 20
 
 es = ElasticsearchConnection.get_instance()
 model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-router = APIRouter()
 
+
+router = APIRouter()
 @router.get("/hybrid-search")
 async def search(query: str = Query(...,description="Hybrid Search",example="ก๊าซหุงต้ม")):
     try:

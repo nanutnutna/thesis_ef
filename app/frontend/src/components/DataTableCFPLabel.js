@@ -9,7 +9,7 @@ const DataTableCFPLabel = ({ data }) => {
             <th style={styles.header}>No</th>
             <th style={styles.header}>License</th>
             <th style={styles.header}>Name</th>
-            <th style={styles.header}>Detail</th>
+            {/* <th style={styles.header}>Detail</th> */}
             <th style={styles.header}>Industrials</th>
             <th style={styles.header}>ApproveDate</th>
             <th style={styles.header}>EF</th>
@@ -28,7 +28,7 @@ const DataTableCFPLabel = ({ data }) => {
               <td style={styles.cell}>{item.Seq || '-'}</td>
               <td style={styles.cell}>{item.License || '-'}</td>
               <td style={styles.cell}>{item.Name || '-'}</td>
-              <td style={styles.cell}>{item.Detail || '-'}</td>
+              {/* <td style={styles.cell}>{item.Detail || '-'}</td> */}
               <td style={styles.cell}>{item.Industrials || '-'}</td>
               <td style={styles.cell}>{item.ApproveDate || '-'}</td>
               <td style={styles.cell}>{item.EF || '-'}</td>

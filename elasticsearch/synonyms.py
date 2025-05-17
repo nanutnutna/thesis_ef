@@ -10,3 +10,4 @@ for i in range(len(df)):
     else:
         last_result = f'"{result}",'
     thai_synonyms.append(result)
+

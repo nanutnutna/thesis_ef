@@ -98,14 +98,13 @@ index_settings = {
                 "dims": 384,
                 "index": True,
                 "similarity": "cosine"
+            },
+            "context_vector":{
+                "type": "dense_vector",
+                "dims": 384,
+                "index":True,
+                "similarity": "cosine"
             }
-            # },
-            # "context_vector":{
-            #     "type": "dense_vector",
-            #     "dims": 384,
-            #     "index":True,
-            #     "similarity": "cosine"
-            # }
         }
     }
 }
@@ -163,8 +162,8 @@ def index_documents(documents):
 
 
 # insert dat
-# num_docs = index_documents(load_json())
-# print(f"Added {num_docs} data items successfully")
+num_docs = index_documents(load_json())
+print(f"Added {num_docs} data items successfully")
 
 
 ### # เพิ่มข้อมูลเข้า index
