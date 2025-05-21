@@ -20,55 +20,65 @@ export const listIndex = () => {
 };
 
 // upload files
-export const uploadData = (formData) => {
-  return api.post('/upload-data-with-image/', formData);
-};
+// export const uploadData = (formData) => {
+//   return api.post('/upload-data-with-image/', formData);
+// };
 
 // CFP
 export const searchDataCFP = (query) => {
   return api.get(`/search-data_cfp/?q=${query}`);
 };
-export const fetchAutocompleteCFP = async (query) => {
-  return await api.get(`/autocomplete_cfp/?q=${query}`);
-};
+// export const fetchAutocompleteCFP = async (query) => {
+//   return await api.get(`/autocomplete_cfp/?q=${query}`);
+  
+// };
 
 // CFO
-export const searchDataCFO = (query) => {
-  return api.get(`/search-data_cfo/?q=${query}`);
+export const searchDataCFO = async (query='',searchType='hybrid') => {
+  return await api.get('search-data_cfo/',{
+    params: {
+      q: query || undefined,
+      search_type: searchType
+    }
+  })
 };
-export const fetchAutocompleteCFO = async (query) => {
-  return await api.get(`/autocomplete_cfo/?q=${query}`);
-};
+
+// export const searchDataCFO = (query) => {
+//   return api.get(`/search-data_cfo/?q=${query}`);
+// };
+// export const fetchAutocompleteCFO = async (query) => {
+//   return await api.get(`/autocomplete_cfo/?q=${query}`);
+// };
 
 
 // CLP
 export const searchDataCLP = (query) => {
   return api.get(`/search-data_clp/?q=${query}`);
 };
-export const fetchAutocompleteCLP = async (query) => {
-  return await api.get(`/autocomplete_clp/?q=${query}`);
-};
+// export const fetchAutocompleteCLP = async (query) => {
+//   return await api.get(`/autocomplete_clp/?q=${query}`);
+// };
 
 
 
 // CFO+CFP
-export const searchDataCombine = (query) => {
-  return api.get(`/search-data_combine/?q=${query}`);
-};
-export const fetchAutocompleteCombine = async (query) => {
-  return await api.get(`/autocomplete_combine/?q=${query}`);
-};
+// export const searchDataCombine = (query) => {
+//   return api.get(`/search-data_combine/?q=${query}`);
+// };
+// export const fetchAutocompleteCombine = async (query) => {
+//   return await api.get(`/autocomplete_combine/?q=${query}`);
+// };
 
 // em
-export const searchDataEmbedding = (query) => {
-  return api.get(`/search-embedding/?q=${query}`);
-};
+// export const searchDataEmbedding = (query) => {
+//   return api.get(`/search-embedding/?q=${query}`);
+// };
 
 
 // hybrid-search
-export const searchHybrid = (query) => {
-  return api.get(`/hybrid-search?query=${encodeURIComponent(query)}`);
-};
+// export const searchHybrid = (query) => {
+//   return api.get(`/hybrid-search?query=${encodeURIComponent(query)}`);
+// };
 
 // cfp-label-search
 export const searchDataCFPlabel = (query) => {

@@ -4,7 +4,7 @@ from sentence_transformers import SentenceTransformer
 import time
 from searchtype import SearchType
 
-INDEX_NAME = 'ef2' #cfo
+INDEX_NAME = 'cfo' #ef2
 
 es = ElasticsearchConnection.get_instance()
 model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
@@ -27,11 +27,23 @@ async def search_cfo(
             if search_type == SearchType.keyword:
                 response = es.search(index=INDEX_NAME, body={
                     "query": {
-                        "multi_match": {
-                            "query": q,
-                            "fields": ["ชื่อ", "รายละเอียด","กลุ่ม"],
-                            # "type": "best_fields",
-                            "operator": "and"
+                        "bool": {
+                            "should": [
+                                # {"term": {"ชื่อ.exact": q}},
+                                # {"term": {"รายละเอียด.exact": q}}
+                                {"match_phrase": {
+                                    "ชื่อ.keyword_search": {
+                                        "query": q,
+                                        "boost": 2.0
+                                    }
+                                }},
+                                {"match_phrase": {
+                                    "รายละเอียด.keyword_search": {
+                                        "query": q,
+                                        "boost": 1.0
+                                    }
+                                }}                                
+                            ]
                         }
                     }
                 })
@@ -42,7 +54,7 @@ async def search_cfo(
                         "script_score": {
                             "query": {"match_all":{}},
                             "script":{
-                                "source": "cosineSimilarity(params.query_vector, 'text_vector') + 1.0", ##text_vector = embedding(name+detail)
+                                "source": "cosineSimilarity(params.query_vector, 'text_vector') + 1.0",
                                 "params": {
                                     "query_vector": query_vector
                                 }
@@ -55,9 +67,9 @@ async def search_cfo(
                 keyword_query = {
                     "multi_match": {
                         "query":q,
-                        "fields": ["ชื่อ","รายละเอียด","กลุ่ม"],
+                        "fields": ["ชื่อ.search","รายละเอียด.search"],
                         "operator": "and",
-                        "boost": 1.0
+                        "boost": 0.4
                     }
                 }
 

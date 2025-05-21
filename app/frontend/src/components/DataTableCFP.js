@@ -6,25 +6,23 @@ const DataTableCLP = ({ data }) => {
       <table style={styles.table}>
         <thead>
           <tr>
+            <th style={styles.header}>กลุ่ม</th>
             <th style={styles.header}>ชื่อ</th>
             <th style={styles.header}>รายละเอียด</th>
-            <th style={styles.header}>กลุ่ม</th>
-            <th style={styles.header}>วันที่อนุมัติ</th>
-            <th style={styles.header}>CF</th>
-            <th style={styles.header}>หน่วยการทำงาน</th>
-            <th style={styles.header}>ขอบเขต</th>
+            <th style={styles.header}>หน่วย</th>
+            <th style={styles.header}>ค่าแฟคเตอร์ (kgCO2e)</th>
+            <th style={styles.header}>ข้อมูลอ้างอิง</th>
           </tr>
         </thead>
         <tbody>
           {data.map((item, index) => (
             <tr key={index} style={styles.row}>
+              <td style={styles.cell}>{item.กลุ่ม || '-'}</td>
               <td style={styles.cell}>{item.ชื่อ || '-'}</td>
               <td style={styles.cell}>{item.รายละเอียด || '-'}</td>
-              <td style={styles.cell}>{item.กลุ่ม || '-'}</td>
-              <td style={styles.cell}>{item.วันที่อนุมัติ || '-'}</td>
-              <td style={styles.cell}>{item['CF'] || '-'}</td>
-              <td style={styles.cell}>{item.หน่วยการทำงาน || '-'}</td>
-              <td style={styles.cell}>{item.ขอบเขต || '-'}</td>
+              <td style={styles.cell}>{item.หน่วย || '-'}</td>
+              <td style={styles.cell}>{item['ค่าแฟคเตอร์ (kgCO2e)'] || '-'}</td>
+              <td style={styles.cell}>{item.ข้อมูลอ้างอิง || '-'}</td>
             </tr>
           ))}
         </tbody>

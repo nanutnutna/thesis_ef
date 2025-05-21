@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { searchDataCFO } from '../api/api';
-import DataTable from '../components/DataTable';
+import DataTableCFO from '../components/DataTableCFO';
 import { Link } from 'react-router-dom';
 import { debounce } from 'lodash';
 
@@ -24,7 +24,10 @@ const SearchPageCFO = () => {
     debounce(async (searchQuery, type) => {
       setIsLoading(true);
       try {
+        console.log("Searching with query:", searchQuery, "and type:", type);
         const response = await searchDataCFO(searchQuery, type);
+
+        console.log("Search response:", response);
         setResults(response.data || []);
         setError(null);
       } catch (err) {
@@ -178,7 +181,7 @@ const SearchPageCFO = () => {
               </div>
             </div>
             <div className="border border-gray-300 rounded-lg overflow-hidden shadow-lg">
-              <DataTable data={results} />
+              <DataTableCFO data={results} />
             </div>
           </div>
         ) : !isLoading && (

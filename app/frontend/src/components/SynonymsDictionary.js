@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse';
+import { Link } from 'react-router-dom'; // เพิ่มการ import Link
 
 const SynonymsDictionary = () => {
   const [data, setData] = useState([]);
@@ -109,6 +110,19 @@ const SynonymsDictionary = () => {
   
   return (
     <div className="max-w-6xl mx-auto p-4">
+      {/* ปุ่มกลับหน้า Home ที่มุมซ้ายบน */}
+      <div className="absolute top-4 left-4">
+        <Link 
+          to="/" 
+          className="flex items-center bg-white text-blue-700 hover:bg-blue-50 font-medium py-2 px-4 rounded-lg shadow-md transition-all duration-300 border-2 border-blue-600"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to Home
+        </Link>
+      </div>
+      
       <h1 className="text-3xl font-bold text-center mb-6">Synonyms Dictionary</h1>
       
       {/* ช่องค้นหา */}

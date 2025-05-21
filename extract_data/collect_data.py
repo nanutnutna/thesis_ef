@@ -35,6 +35,17 @@ def extract_cfp(url):
 
     output = f"{OUTPUT_PATH}/emission_factor_cfp_{current_date}.csv"
     df.to_csv(output,index=False,encoding='utf-8-sig')
+
+    #save to json
+    df.to_json(f'cfp_{current_date}.json',orient='records',indent=4,force_ascii=False)
+    with open(f'cfp_{current_date}.json', 'r', encoding='utf-8') as f:
+        json_str = f.read()
+    json_str = json_str.replace('\\/', '/')
+
+    with open(f'cfp_{current_date}.json', 'w', encoding='utf-8') as f:
+        f.write(json_str)
+    f.close()
+
     return df
 
 def extract_cfo(url):
@@ -74,6 +85,17 @@ def extract_cfo(url):
     #save table
     output = f"{OUTPUT_PATH}/emission_factor_cfo_{current_date}.csv"
     df.to_csv(output,index=False,encoding='utf-8-sig')
+
+    #save to json
+    df.to_json(f'cfo_{current_date}.json',orient='records',indent=4,force_ascii=False)
+    with open(f'cfO_{current_date}.json', 'r', encoding='utf-8') as f:
+        json_str = f.read()
+    json_str = json_str.replace('\\/', '/')
+
+    with open(f'cfo_{current_date}.json', 'w', encoding='utf-8') as f:
+        f.write(json_str)
+    f.close()
+
     return df
 
 def mergetable(t1,t2):

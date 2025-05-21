@@ -9,14 +9,14 @@ from sentence_transformers import SentenceTransformer
 
 
 currentDate = datetime.now()
-file_date = '20250517'
-# file_date = datetime.strftime(currentDate,"%Y%m%d")
+# file_date = '20250517'
+file_date = datetime.strftime(currentDate,"%Y%m%d")
 
 load_dotenv("../.env")
 ELASTIC_ID = os.getenv("ELASTIC_ID")
 ELASTIC_PW = os.getenv("ELASTIC_PW")
 INDEX_NAME = 'cfp_label'
-JSON_PATH = rf'C:\Users\Nattapot\Desktop\thesis_ef\extract_data\cfp_label_{file_date}.json'
+JSON_PATH = rf'C:\Users\Nattapot\Desktop\thesis_ef\extract_data\{INDEX_NAME}_{file_date}.json'
 
 es = Elasticsearch(
     "https://localhost:9200",

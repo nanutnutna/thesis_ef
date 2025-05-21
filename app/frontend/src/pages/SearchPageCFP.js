@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { searchDataCFP } from '../api/api';
-import DataTable from '../components/DataTable';
+import DataTable from '../components/DataTableCFP';
 import { Link } from 'react-router-dom';
 import { debounce } from 'lodash'; // นำเข้า debounce จาก lodash
 
