@@ -5,6 +5,7 @@ import SearchPageCFP from './pages/SearchPageCFP';
 import SearchPageCFO from './pages/SearchPageCFO';
 import SearchPageCFPLabel from './pages/SearchPageCFPLabel';
 import Dictionary from './pages/Dictionary';
+import SearchPageCombine from './pages/SearchPageCombine';
 // import Search from './pages/#Search';
 // import RealTimeSearch from './pages/RealTimeSearch';
 // import Upload from './pages/Upload';
@@ -23,6 +24,7 @@ function App() {
         <Route path="/cfo" element={<SearchPageCFO />} />
         <Route path="/cfplabel" element={<SearchPageCFPLabel />} />
         <Route path="/dictionary" element={<Dictionary />} />
+        <Route path="/all" element={<SearchPageCombine />} />
         {/* <Route path="/realtime" element={<RealTimeSearch />} /> */}
         {/* <Route path="/clp" element={<SearchPageCLP />} /> */}
         {/* <Route path="/combine" element={<SearchPageCombine />} /> */}

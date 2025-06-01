@@ -84,3 +84,8 @@ export const searchDataCLP = (query) => {
 export const searchDataCFPlabel = (query) => {
   return api.get(`/search-cfplabel?query=${encodeURIComponent(query)}`);
 };
+
+// all-search
+export const searchData = (query) => {
+  return api.get(`/search-combine?query=${encodeURIComponent(query)}`);
+};

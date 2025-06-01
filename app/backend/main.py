@@ -1,20 +1,20 @@
 from fastapi import FastAPI
-from routers import search,hybridsearch,searchcfplabel,searchcfp,searchcfo
+from app.backend.routers import searchcfpcombine
+from routers import searchcfplabel,searchcfp,searchcfo
 from fastapi.middleware.cors import CORSMiddleware
-# from fastapi.staticfiles import StaticFiles
+
 
 
 app = FastAPI()
-app.include_router(search.router)
-app.include_router(hybridsearch.router)
 app.include_router(searchcfplabel.router)
 app.include_router(searchcfp.router)
 app.include_router(searchcfo.router)
-# app.include_router(llm.router)
+app.include_router(searchcfpcombine.router)
+
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # หรือกำหนดเป็น ["http://localhost:3000"]
+    allow_origins=["*"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

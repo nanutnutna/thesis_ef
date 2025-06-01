@@ -6,28 +6,30 @@ const DataTableCombine = ({ data }) => {
       <table style={styles.table}>
         <thead>
           <tr>
-            <th style={styles.header}>กลุ่ม</th>
-            <th style={styles.header}>ชื่อ</th>
-            <th style={styles.header}>รายละเอียด</th>
-            <th style={styles.header}>หน่วย</th>
-            <th style={styles.header}>ค่าแฟกเตอร์</th>
-            <th style={styles.header}>ข้อมูลอ้างอิง</th>
-            <th style={styles.header}>วันที่มีผล</th>
-            <th style={styles.header}>ประเภทแฟกเตอร์</th>
+            <th style={styles.header}>Category</th>
+            <th style={styles.header}>Name</th>
+            <th style={styles.header}>Unit</th>
+            <th style={styles.header}>Factor (kgCO2e/Unit)</th>
+            <th style={styles.header}>Reference</th>
+            <th style={styles.header}>Last Updated</th>
+            <th style={styles.header}>Score</th>
+            {/* <th style={styles.header}>วันที่มีผล</th>
+            <th style={styles.header}>ประเภทแฟกเตอร์</th> */}
             {/* <th style={styles.header}>เปลี่ยนแปลง</th> */}
           </tr>
         </thead>
         <tbody>
           {data.map((item, index) => (
             <tr key={index} style={styles.row}>
-              <td style={styles.cell}>{item.กลุ่ม || '-'}</td>
-              <td style={styles.cell}>{item.ชื่อ || '-'}</td>
-              <td style={styles.cell}>{item.รายละเอียด || '-'}</td>
-              <td style={styles.cell}>{item.หน่วย || '-'}</td>
-              <td style={styles.cell}>{item['ค่าแฟคเตอร์ (kgCO2e)'] || '-'}</td>
-              <td style={styles.cell}>{item.ข้อมูลอ้างอิง || '-'}</td>
-              <td style={styles.cell}>{item.วันที่อัพเดท || '-'}</td>
-              <td style={styles.cell}>{item.ประเภทแฟคเตอร์ || '-'}</td>
+              <td style={styles.cell}>{item.Category || '-'}</td>
+              <td style={styles.cell}>{item.Name || '-'}</td>
+              <td style={styles.cell}>{item.Unit || '-'}</td>
+              <td style={styles.cell}>{item.Factor || '-'}</td>
+              <td style={styles.cell}>{item.Reference || '-'}</td>
+              <td style={styles.cell}>{item.Last_Updated || '-'}</td>
+              <td style={styles.cell}>{item.score || '-'}</td>
+              {/* <td style={styles.cell}>{item.วันที่อัพเดท || '-'}</td>
+              <td style={styles.cell}>{item.ประเภทแฟคเตอร์ || '-'}</td> */}
               {/* <td style={styles.cell}>{item.เปลี่ยนแปลง || '-'}</td> */}
             </tr>
           ))}

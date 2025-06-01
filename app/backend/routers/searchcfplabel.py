@@ -39,7 +39,7 @@ async def search(query: str = Query(None, description="CFP-Label Search")):
                                 "knn": {
                                     "field" : "text_vector",
                                     "query_vector": query_vector,
-                                    "k": 10,
+                                    "k": 15,
                                     "num_candidates": 100,
                                     "boost": VECTOR_WEIGHT
                                 }
@@ -49,7 +49,6 @@ async def search(query: str = Query(None, description="CFP-Label Search")):
                 }
             })
         
-        # จัดการผลลัพธ์
         unique_results = []
         seen_ids = set()
         for hit in response['hits']['hits']:
