@@ -4,10 +4,10 @@ import json
 from synonyms import thai_synonyms
 from sentence_transformers import SentenceTransformer
 
-
+CURRENTDATE = datetime.strftime(datetime.now(),"%Y%m%d")
 INDEX_NAME = 'combine'
-JSON_PATH = 'combine_20250601.json'
-currentDate = datetime.strftime(datetime.now(),"%Y%m%d")
+# JSON_PATH = f'combine_{CURRENTDATE}.json'
+JSON_PATH = f'combine_20250602.json'
 es = ElasticsearchConnection.get_instance()
 
 if es.ping():

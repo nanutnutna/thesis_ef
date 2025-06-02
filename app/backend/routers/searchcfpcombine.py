@@ -5,7 +5,7 @@ from sentence_transformers import SentenceTransformer
 INDEX_NAME = 'combine'
 BM25_WEIGHT = 0.6
 VECTOR_WEIGHT = 1 - BM25_WEIGHT
-SIZE = 100
+SIZE = 50
 es = ElasticsearchConnection.get_instance()
 model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
 router = APIRouter()
@@ -13,13 +13,12 @@ router = APIRouter()
 @router.get("/search-combine")
 async def search(query: str = Query(None, description="All Table Search")):
     try:
-        #query
         if not query:
             response = es.search(index=INDEX_NAME, body={
                 "query": {
                     "match_all": {}
                 },
-                "size": 10000
+                "size": SIZE*100
             })
         else:
             query_vector = model.encode(query).tolist()
@@ -30,22 +29,24 @@ async def search(query: str = Query(None, description="All Table Search")):
                             {
                                 "multi_match": {
                                     "query": query,
-                                    "fields": ["Name^3","Category"],
+                                    "fields": ["Name^2", "Category"],
                                     "boost": BM25_WEIGHT
                                 }
                             },
                             {
-                                "knn": {
-                                    "field" : "text_vector",
-                                    "query_vector": query_vector,
-                                    "k": 20,
-                                    "num_candidates": 200,
+                                "script_score": {
+                                    "query": {"match_all": {}},
+                                    "script": {
+                                        "source": "cosineSimilarity(params.query_vector, 'text_vector') + 1.0",
+                                        "params": {"query_vector": query_vector}
+                                    },
                                     "boost": VECTOR_WEIGHT
                                 }
                             }
                         ]
                     }
-                }
+                },
+                "size": SIZE
             })
         
         unique_results = []
@@ -53,8 +54,7 @@ async def search(query: str = Query(None, description="All Table Search")):
         for hit in response['hits']['hits']:
             if hit["_id"] not in seen_ids:
                 result = hit["_source"].copy()
-                result["score"]= hit["_score"]
-
+                result["score"] = hit["_score"]
                 unique_results.append(result)
                 seen_ids.add(hit["_id"])
                 
