@@ -5,9 +5,14 @@ import time
 
 INDEX_NAME = 'ef1' #cfp
 
-es = ElasticsearchConnection.get_instance()
+# es = ElasticsearchConnection.get_instance()
 model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
 router = APIRouter()
+
+from elasticsearch import Elasticsearch
+es = Elasticsearch(
+  "https://14a823faf1c845b0a02f427056f7112c.asia-southeast1.gcp.elastic-cloud.com:443",
+  api_key="YlRZaHlaY0JVRzZKbi1obUV0WnM6ZDlPTS13VS1Ja1E2S3M1eUpkSE56QQ==")
 
 @router.get("/search-data_cfp/")
 async def search_cfp(q: str = Query(None, description="Search query in Thai or English")):

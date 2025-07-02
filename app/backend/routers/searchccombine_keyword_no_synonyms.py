@@ -1,12 +1,17 @@
 from fastapi import Query, APIRouter
-from elastic_connection import ElasticsearchConnection
+# from elastic_connection import ElasticsearchConnection
 from sentence_transformers import SentenceTransformer
 
 
 INDEX_NAME = 'keyword_combine_no_synonym'
 SIZE = 1000
-es = ElasticsearchConnection.get_instance()
+# es = ElasticsearchConnection.get_instance()
 router = APIRouter()
+
+from elasticsearch import Elasticsearch
+es = Elasticsearch(
+  "https://14a823faf1c845b0a02f427056f7112c.asia-southeast1.gcp.elastic-cloud.com:443",
+  api_key="YlRZaHlaY0JVRzZKbi1obUV0WnM6ZDlPTS13VS1Ja1E2S3M1eUpkSE56QQ==")
 
 @router.get("/search-combine-key-no-synonyms")
 async def search(query: str = Query(None, description="All Table Search")):

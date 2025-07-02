@@ -1,15 +1,19 @@
 from fastapi import Query, APIRouter
-from elastic_connection import ElasticsearchConnection
+# from elastic_connection import ElasticsearchConnection
 from sentence_transformers import SentenceTransformer
 
 
 INDEX_NAME = 'combine_new_model_no_synonyms'
 SIZE = 20
-es = ElasticsearchConnection.get_instance()
+# es = ElasticsearchConnection.get_instance()
 # model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
 model = SentenceTransformer('intfloat/multilingual-e5-base')
 router = APIRouter()
 
+from elasticsearch import Elasticsearch
+es = Elasticsearch(
+  "https://14a823faf1c845b0a02f427056f7112c.asia-southeast1.gcp.elastic-cloud.com:443",
+  api_key="YlRZaHlaY0JVRzZKbi1obUV0WnM6ZDlPTS13VS1Ja1E2S3M1eUpkSE56QQ==")
 
 
 @router.get("/search-combine-no-synonyms")

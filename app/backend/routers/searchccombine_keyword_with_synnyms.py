@@ -1,5 +1,5 @@
 from fastapi import Query, APIRouter
-from elastic_connection import ElasticsearchConnection
+# from elastic_connection import ElasticsearchConnection
 from sentence_transformers import SentenceTransformer
 
 
