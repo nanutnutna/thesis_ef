@@ -1,35 +1,19 @@
-from elastic_connection import ElasticsearchConnection
-from datetime import datetime
-import json
+from elasticsearch import Elasticsearch
 from synonyms import thai_synonyms
 from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
+import json
 
-CURRENTDATE = datetime.strftime(datetime.now(),"%Y%m%d")
-# INDEX_NAME = 'combine_no_synonym'
-# INDEX_NAME = 'thai_combine'
-# INDEX_NAME = 'combine'
-INDEX_NAME = 'combine_new_model'
-# INDEX_NAME = 'combine_new_model_no_synonyms'
-# INDEX_NAME = 'combine_without_synonyms'
-# JSON_PATH = f'combine_{CURRENTDATE}.json'
-# JSON_PATH = f'combine_20250602.json'
-JSON_PATH = f'combine_20250701.json'
-# es = ElasticsearchConnection.get_instance()
+INDEX_NAME = 'test_elastic_cloud'
+JSON_PATH = f'combine_20250602.json'
 
-
-from elasticsearch import Elasticsearch
 es = Elasticsearch(
-  "https://14a823faf1c845b0a02f427056f7112c.asia-southeast1.gcp.elastic-cloud.com:443",
-  api_key="YlRZaHlaY0JVRzZKbi1obUV0WnM6ZDlPTS13VS1Ja1E2S3M1eUpkSE56QQ==")
-
-if es.ping():
-    print("Successfully connected to Elastic!")
-else:
-    print("Connection failed. Please check your connection information")
+  "https://17a1b0bc419b499eb33a40065d65170d.asia-southeast1.gcp.elastic-cloud.com:443",
+  api_key="cm1kMmpKY0I4c1o0ckNSSzJmNjk6aVM5eE9iVUpuX25YRHhQbXNqd20xZw=="
+)
 
 
-# hybrid
+
 index_settings = {
     "settings": {
         "analysis": {
@@ -44,7 +28,7 @@ index_settings = {
             "analyzer": {
                 "thai_eng_analyzer": {
                     "type":"custom",
-                    "tokenizer": "icu_tokenizer",
+                    "tokenizer": "icu_tokenizer", # "icu_tokenizer"
                     "filter": [
                         "lowercase",
                         "icu_folding"
@@ -52,7 +36,7 @@ index_settings = {
                 },
                 "thai_eng_search_analyzer":{
                     "type": "custom",
-                    "tokenizer": "icu_tokenizer", 
+                    "tokenizer": "icu_tokenizer", # "thai"
                     "filter": [
                         "lowercase",
                         "icu_folding",
@@ -72,9 +56,6 @@ index_settings = {
                 "analyzer": "thai_eng_analyzer",
                 "search_analyzer": "thai_eng_search_analyzer"
             },
-            "Detail": {
-                "type": "text"
-            },
             "Unit": {
                 "type": "text"
             },
@@ -86,7 +67,8 @@ index_settings = {
             },
             "Last Updated": {
                 "type": "text"
-            },
+            }
+            ,
             "text_vector": {
                 "type": "dense_vector",
                 "dims": 768, 
@@ -98,55 +80,10 @@ index_settings = {
 }
 
 
-
-
-# hybrid without synonyms
-# index_settings = {
-#     "settings": {
-#         "analysis": {
-#             "analyzer": {
-#                 "thai_eng_analyzer": {
-#                     "type":"custom",
-#                     "tokenizer": "icu_tokenizer",
-#                     "filter": [
-#                         "lowercase",
-#                         "icu_folding"
-#                     ]
-#                 }
-#             }
-#         }
-#     },
-#     "mappings": {
-#         "properties": {
-#             "Category": {
-#                 "type": "text"
-#             },
-#             "Name": {
-#                 "type": "text",
-#                 "analyzer": "thai_eng_analyzer"
-#             },
-#             "Unit": {
-#                 "type": "text"
-#             },
-#             "Factor": {
-#                 "type": "text"
-#             },
-#             "Reference": {
-#                 "type": "text"
-#             },
-#             "Last Updated": {
-#                 "type": "text"
-#             }
-#             ,
-#             "text_vector": {
-#                 "type": "dense_vector",
-#                 "dims": 768,
-#                 "index": True,
-#                 "similarity": "cosine"
-#             }
-#         }
-#     }
-# }
+if es.ping():
+    print("Successfully connected to Elastic!")
+else:
+    print("Connection failed. Please check your connection information")
 
 
 if not es.indices.exists(index=INDEX_NAME):

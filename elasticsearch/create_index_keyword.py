@@ -9,13 +9,13 @@ CURRENTDATE = datetime.strftime(datetime.now(),"%Y%m%d")
 # INDEX_NAME = 'combine_no_synonym'
 # INDEX_NAME = 'thai_combine'
 # INDEX_NAME = 'combine'
-INDEX_NAME = 'combine_new_model'
-# INDEX_NAME = 'combine_new_model_no_synonyms'
-# INDEX_NAME = 'combine_without_synonyms'
+INDEX_NAME = 'keyword_combine_with_synonym'
+# INDEX_NAME = 'keyword_combine_no_synonym'
 # JSON_PATH = f'combine_{CURRENTDATE}.json'
 # JSON_PATH = f'combine_20250602.json'
 JSON_PATH = f'combine_20250701.json'
 # es = ElasticsearchConnection.get_instance()
+
 
 
 from elasticsearch import Elasticsearch
@@ -28,8 +28,6 @@ if es.ping():
 else:
     print("Connection failed. Please check your connection information")
 
-
-# hybrid
 index_settings = {
     "settings": {
         "analysis": {
@@ -44,7 +42,7 @@ index_settings = {
             "analyzer": {
                 "thai_eng_analyzer": {
                     "type":"custom",
-                    "tokenizer": "icu_tokenizer",
+                    "tokenizer": "icu_tokenizer", # "icu_tokenizer"
                     "filter": [
                         "lowercase",
                         "icu_folding"
@@ -52,7 +50,7 @@ index_settings = {
                 },
                 "thai_eng_search_analyzer":{
                     "type": "custom",
-                    "tokenizer": "icu_tokenizer", 
+                    "tokenizer": "icu_tokenizer", # "thai"
                     "filter": [
                         "lowercase",
                         "icu_folding",
@@ -86,21 +84,11 @@ index_settings = {
             },
             "Last Updated": {
                 "type": "text"
-            },
-            "text_vector": {
-                "type": "dense_vector",
-                "dims": 768, 
-                "index": True,
-                "similarity": "cosine"
             }
         }
     }
 }
 
-
-
-
-# hybrid without synonyms
 # index_settings = {
 #     "settings": {
 #         "analysis": {
@@ -137,13 +125,6 @@ index_settings = {
 #             "Last Updated": {
 #                 "type": "text"
 #             }
-#             ,
-#             "text_vector": {
-#                 "type": "dense_vector",
-#                 "dims": 768,
-#                 "index": True,
-#                 "similarity": "cosine"
-#             }
 #         }
 #     }
 # }
@@ -156,12 +137,6 @@ else:
     print(f"Index '{INDEX_NAME}' already exists")
 
 
-# call model 
-model_name = f'multilingual-e5-base'
-# model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-model = SentenceTransformer('intfloat/multilingual-e5-base')
-print(f"Model '{model_name}' loaded successfully")
-
 def load_json(path=JSON_PATH):
     f = open(path, 'r', encoding='utf-8')
     data = json.load(f)
@@ -169,41 +144,21 @@ def load_json(path=JSON_PATH):
     f.close()
     return result
 
-# for hybird
+
 def index_documents(documents):
     count = 0
-    for i, doc in tqdm(enumerate(documents),total=len(documents),ncols=50):
-        text_vector = doc['Name']
-        embedding_text = model.encode(text_vector)
-
-        doc_with_vector = doc.copy()
-        doc_with_vector["text_vector"] = embedding_text.tolist()
-
+    for i, doc in tqdm(enumerate(documents), total=len(documents), ncols=50):
+        # No need to generate embeddings - just index the document as is
         es.index(
             index=INDEX_NAME,
             id=i,
-            document=doc_with_vector
+            document=doc
         )
         count += 1
     
     # Refresh index
     es.indices.refresh(index=INDEX_NAME)
     return count
-
-# def index_documents(documents):
-#     count = 0
-#     for i, doc in tqdm(enumerate(documents), total=len(documents), ncols=50):
-#         # No need to generate embeddings - just index the document as is
-#         es.index(
-#             index=INDEX_NAME,
-#             id=i,
-#             document=doc
-#         )
-#         count += 1
-    
-#     # Refresh index
-#     es.indices.refresh(index=INDEX_NAME)
-#     return count
 
 
 num_docs = index_documents(load_json())

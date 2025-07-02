@@ -89,3 +89,21 @@ export const searchDataCFPlabel = (query) => {
 export const searchData = (query) => {
   return api.get(`/search-combine?query=${encodeURIComponent(query)}`);
 };
+
+export const searchDataCombinenoSynonyms = (query) => {
+  return api.get(`/search-combine-no-synonyms?query=${encodeURIComponent(query)}`);
+};
+
+// key-search
+export const searchDataKeyWSynonyms = (query) => {
+  return api.get(`/search-combine-key-synonyms?query=${encodeURIComponent(query)}`);
+};
+
+export const searchDataKeynoSynonyms = (query) => {
+  return api.get(`/search-combine-key-no-synonyms?query=${encodeURIComponent(query)}`);
+};
+
+// cloud-search
+export const searchCloud = (query) => {
+  return api.get(`/search-cloud?query=${encodeURIComponent(query)}`);
+};

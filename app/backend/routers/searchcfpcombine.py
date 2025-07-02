@@ -2,13 +2,24 @@ from fastapi import Query, APIRouter
 from elastic_connection import ElasticsearchConnection
 from sentence_transformers import SentenceTransformer
 
-INDEX_NAME = 'combine'
-BM25_WEIGHT = 0.6
-VECTOR_WEIGHT = 1 - BM25_WEIGHT
-SIZE = 50
-es = ElasticsearchConnection.get_instance()
-model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+# INDEX_NAME = 'combine_no_synonym'
+# INDEX_NAME = 'combine'
+INDEX_NAME = 'combine_new_model'
+# INDEX_NAME = 'combine_without_synonyms'
+# INDEX_NAME = 'thai_combine'
+BM25_WEIGHT = 0.7
+VECTOR_WEIGHT = 0.3
+SIZE = 10000
+# es = ElasticsearchConnection.get_instance()
+# model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+model = SentenceTransformer('intfloat/multilingual-e5-base')
+# new_model = SentenceTransformer('intfloat/multilingual-e5-base')
 router = APIRouter()
+
+from elasticsearch import Elasticsearch
+es = Elasticsearch(
+  "https://14a823faf1c845b0a02f427056f7112c.asia-southeast1.gcp.elastic-cloud.com:443",
+  api_key="YlRZaHlaY0JVRzZKbi1obUV0WnM6ZDlPTS13VS1Ja1E2S3M1eUpkSE56QQ==")
 
 @router.get("/search-combine")
 async def search(query: str = Query(None, description="All Table Search")):
@@ -18,8 +29,10 @@ async def search(query: str = Query(None, description="All Table Search")):
                 "query": {
                     "match_all": {}
                 },
-                "size": SIZE*100
-            })
+                "size": SIZE
+            },
+            source_excludes=["text_vector"]
+            )
         else:
             query_vector = model.encode(query).tolist()
             response = es.search(index=INDEX_NAME, body={
@@ -30,14 +43,23 @@ async def search(query: str = Query(None, description="All Table Search")):
                                 "multi_match": {
                                     "query": query,
                                     "fields": ["Name^2", "Category"],
-                                    "boost": BM25_WEIGHT
+                                    "boost": BM25_WEIGHT,
+                                    "fuzziness": "AUTO",
+                                    "type": "best_fields"
                                 }
                             },
                             {
                                 "script_score": {
-                                    "query": {"match_all": {}},
+                                    "query": {
+                                        "multi_match": {
+                                            "query": query,
+                                            "fields": ["Name","Category"],
+                                            "fuzziness": "AUTO",
+                                            "type": "best_fields"
+                                        }
+                                    },
                                     "script": {
-                                        "source": "cosineSimilarity(params.query_vector, 'text_vector') + 1.0",
+                                        "source": "cosineSimilarity(params.query_vector, 'text_vector') + 1",
                                         "params": {"query_vector": query_vector}
                                     },
                                     "boost": VECTOR_WEIGHT
@@ -47,23 +69,197 @@ async def search(query: str = Query(None, description="All Table Search")):
                     }
                 },
                 "size": SIZE
-            })
+            },
+            source_excludes=["text_vector"]
+            )
         
         unique_results = []
         seen_ids = set()
+        
+        # Application level boosting
+        # Application level boosting และ deduplication
         for hit in response['hits']['hits']:
             if hit["_id"] not in seen_ids:
                 result = hit["_source"].copy()
-                result["score"] = hit["_score"]
+                original_score = hit["_score"]
+                
+                # เตรียมข้อมูลสำหรับการเปรียบเทียบ
+                name_upper = result.get("Name", "").upper()
+                name_lower = result.get("Name", "").lower()
+                query_lower = query.lower() if query else ""
+                
+                # กำหนด synonym groups
+                lpg_synonyms = [
+                    "ก๊าซหุงต้ม", "lpg", "cooking gas", "autogas", 
+                    "liquefied petroleum gas", "propane", "butane"
+                ]
+                
+                ethanol_synonyms = [
+                    "ethanol", "เอทานอล", "ethyl alcohol", "grain alcohol", "e85", "e20", "gasohol", "flex fuel",
+                    "bioethanol", "fuel ethanol", "ethyl hydroxide"
+                ]
+                
+                # Logic การ boost คะแนน
+                if query and any(synonym in query_lower for synonym in lpg_synonyms):
+                    # Boost สำหรับ LPG group
+                    if name_upper == "LPG":
+                        result["score"] = round(original_score * 2.5, 5)  # boost LPG สูงสุด
+                    elif "ก๊าซหุงต้ม" in name_lower:
+                        result["score"] = round(original_score * 1.5, 5)  # boost ก๊าซหุงต้ม
+                    elif any(synonym in name_lower for synonym in ["cooking gas", "autogas", "propane", "butane"]):
+                        result["score"] = round(original_score * 1.5, 5)  # boost synonym อื่นๆ
+                    else:
+                        result["score"] = round(original_score, 5)
+                        
+                elif query and any(synonym in query_lower for synonym in ethanol_synonyms):
+                #     # Boost สำหรับ Ethanol group
+                #     if any(eth_term in name_lower for eth_term in ["ethanol", "alcohol", "เอทานอล"]):
+                #         result["score"] = round(original_score * 2.5, 5)  # boost Ethanol และ synonyms
+                    if any(eth_term in name_lower for eth_term in ["alcohol"]):
+                        result["score"] = round(original_score * 0, 5)  # boost Ethanol และ synonyms
+                    else:
+                        result["score"] = round(original_score, 5)
+                        
+                else:
+                    # ไม่มี boost
+                    result["score"] = round(original_score, 5)
+                
                 unique_results.append(result)
                 seen_ids.add(hit["_id"])
+        
+        # Sort by boosted score
+        unique_results.sort(key=lambda x: x["score"], reverse=True)
+        
+        # Limit results
+        # if unique_results:
+        #     max_score = unique_results[0]["score"]
+        #     min_threshold = max_score * 0.2
+            
+
+        #     filtered_results = [
+        #         result for result in unique_results 
+        #         if result["score"] >= min_threshold
+        #     ]
+        #     unique_results = filtered_results
+        # unique_results = unique_results[:SIZE]
+        
                 
     except Exception as e:
         return {"error": str(e)}
-    
+    # return unique_results
     return unique_results
 
 
+# @router.get("/search-combine")
+# async def search(query: str = Query(None, description="All Table Search")):
+#     try:
+#         if not query:
+#             response = es.search(index=INDEX_NAME, body={
+#                 "query": {
+#                     "match_all": {}
+#                 },
+#                 "size": SIZE*100
+#             })
+#         else:
+#             query_vector = model.encode(query).tolist()
+#             response = es.search(index=INDEX_NAME, body={
+#                 "query": {
+#                     "bool": {
+#                         "should": [
+#                             {
+#                                 "multi_match": {
+#                                     "query": query,
+#                                     "fields": ["Name^2", "Category"],
+#                                     "boost": BM25_WEIGHT
+#                                 }
+#                             },
+#                             {
+#                                 "script_score": {
+#                                     "query": {"match_all": {}},
+#                                     "script": {
+#                                         "source": "cosineSimilarity(params.query_vector, 'text_vector') + 10",
+#                                         "params": {"query_vector": query_vector}
+#                                     },
+#                                     "boost": VECTOR_WEIGHT
+#                                 }
+#                             }
+#                         ]
+#                     }
+#                 },
+#                 "size": SIZE
+#             })
+        
+#         unique_results = []
+#         seen_ids = set()
+#         for hit in response['hits']['hits']:
+#             if hit["_id"] not in seen_ids:
+#                 result = hit["_source"].copy()
+#                 result["score"] = hit["_score"]
+#                 unique_results.append(result)
+#                 seen_ids.add(hit["_id"])
+                
+#     except Exception as e:
+#         return {"error": str(e)}
+    
+#     return unique_results
+
+
+# @router.get("/search-combine")
+# async def search(query: str = Query(None, description="All Table Search")):
+#     try:
+#         if not query:
+#             response = es.search(index=INDEX_NAME, body={
+#                 "query": {
+#                     "match_all": {}
+#                 },
+#                 "size": SIZE * 100
+#             })
+#         else:
+#             query_vector = model.encode(query).tolist()
+#             response = es.search(index=INDEX_NAME, body={
+#                 "query": {
+#                     "rrf": {
+#                         "queries": [
+#                             # BM25 Keyword Search (แทน multi_match ใน bool should)
+#                             {
+#                                 "multi_match": {
+#                                     "query": query,
+#                                     "fields": ["Name^2", "Category"],
+#                                     "type": "best_fields"
+#                                 }
+#                             },
+#                             # Vector Semantic Search (แทน script_score ใน bool should)
+#                             {
+#                                 "script_score": {
+#                                     "query": {"match_all": {}},
+#                                     "script": {
+#                                         "source": "cosineSimilarity(params.query_vector, 'text_vector') + 1",
+#                                         "params": {"query_vector": query_vector}
+#                                     }
+#                                 }
+#                             }
+#                         ],
+#                         "rank_constant": 60,  # แทนการใช้ BM25_WEIGHT และ VECTOR_WEIGHT
+#                         "rank_window_size": SIZE * 4  # เพิ่มประสิทธิภาพ
+#                     }
+#                 },
+#                 "size": SIZE
+#             })
+        
+#         # จัดการผลลัพธ์เหมือนเดิม (ไม่ต้องแก้)
+#         unique_results = []
+#         seen_ids = set()
+#         for hit in response['hits']['hits']:
+#             if hit["_id"] not in seen_ids:
+#                 result = hit["_source"].copy()
+#                 result["score"] = hit["_score"]
+#                 unique_results.append(result)
+#                 seen_ids.add(hit["_id"])
+                
+#     except Exception as e:
+#         return {"error": str(e)}
+    
+#     return unique_results
 
 ### rrf #####
 

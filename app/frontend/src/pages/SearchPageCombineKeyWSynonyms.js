@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react'; // 🆕 เปลี่ยน useCallback เป็น useMemo
-import { searchData } from "../api/api";
+import React, { useState, useEffect, useMemo } from 'react';
+import { searchDataKeyWSynonyms } from "../api/api";
 import DataTableCombine from '../components/DataTableCombine';
 import { Link } from 'react-router-dom';
 import { debounce } from 'lodash';
 
-const SearchPageCombine = () => {
+const SearchPageCombineKeyWSynonyms = () => {
   const [query, setQuery] = useState('');
   const [allResults, setAllResults] = useState([]);
   const [filteredResults, setFilteredResults] = useState([]);
@@ -20,7 +20,7 @@ const SearchPageCombine = () => {
   // State สำหรับ filter
   const [selectedCategories, setSelectedCategories] = useState([]);
 
-  // 🆕 State สำหรับ tooltip
+  // State สำหรับ tooltip
   const [tooltip, setTooltip] = useState({
     show: false,
     content: '',
@@ -86,12 +86,8 @@ const SearchPageCombine = () => {
   const showTooltip = (event, item) => {
     const rect = event.currentTarget.getBoundingClientRect();
     
-    // แสดงข้อมูลทั้งหมดที่มีใน object (ยกเว้นข้อมูลที่แสดงในตารางแล้ว และ text vector)
-    const excludeKeys = [
-      'Category', 'category', 'Name', 'name', 'Unit', 'unit', 
-      'Factor', 'factor', 'Reference', 'reference', 'Last_Updated', 'score',
-      'text_vector', 'textVector', 'text vector', 'vector', 'embedding' // 🆕 ซ่อน text vector
-    ];
+    // แสดงข้อมูลทั้งหมดที่มีใน object (ยกเว้นข้อมูลที่แสดงในตารางแล้ว)
+    const excludeKeys = ['Category', 'category', 'Name', 'name', 'Unit', 'unit', 'Factor', 'factor', 'Reference', 'reference', 'Last_Updated', 'score'];
     
     const infoLines = [];
     
@@ -106,10 +102,10 @@ const SearchPageCombine = () => {
       }
     });
 
-    // ถ้าไม่มีข้อมูลเพิ่มเติม ให้แสดงรายชื่อ fields ทั้งหมด (ยกเว้น text vector)
+    // ถ้าไม่มีข้อมูลเพิ่มเติม ให้แสดงรายชื่อ fields ทั้งหมด
     const tooltipContent = infoLines.length > 0 
       ? infoLines.join('\n\n') // เพิ่มระยะห่างระหว่างบรรทัด
-      : 'Available fields:\n' + Object.keys(item).filter(key => !excludeKeys.includes(key)).join(', ');
+      : 'Available fields:\n' + Object.keys(item).join(', ');
 
     setTooltip({
       show: true,
@@ -119,7 +115,7 @@ const SearchPageCombine = () => {
     });
   };
 
-  // 🆕 ฟังก์ชันซ่อน tooltip
+  // ฟังก์ชันซ่อน tooltip
   const hideTooltip = () => {
     setTooltip({
       show: false,
@@ -134,7 +130,6 @@ const SearchPageCombine = () => {
     let filtered = allResults;
     
     if (selectedCategories.length > 0) {
-      // กรองข้อมูลตามหมวดหมู่ที่เลือก (OR condition)
       filtered = allResults.filter(item => 
         selectedCategories.some(category =>
           item.category === category || 
@@ -146,7 +141,7 @@ const SearchPageCombine = () => {
     }
     
     setFilteredResults(filtered);
-    setCurrentPage(1); // กลับไปหน้าแรกเมื่อมีการกรอง
+    setCurrentPage(1);
   }, [allResults, selectedCategories]);
 
   // คำนวณจำนวนหน้าทั้งหมดและอัปเดตผลลัพธ์ที่แสดง
@@ -154,11 +149,9 @@ const SearchPageCombine = () => {
     if (filteredResults.length > 0) {
       setTotalPages(Math.ceil(filteredResults.length / itemsPerPage));
       
-      // คำนวณ index ของรายการแรกและรายการสุดท้ายที่จะแสดงในหน้าปัจจุบัน
       const startIndex = (currentPage - 1) * itemsPerPage;
       const endIndex = startIndex + itemsPerPage;
       
-      // ตัดเฉพาะข้อมูลที่ต้องการแสดงในหน้าปัจจุบัน
       setDisplayedResults(filteredResults.slice(startIndex, endIndex));
     } else {
       setDisplayedResults([]);
@@ -166,12 +159,12 @@ const SearchPageCombine = () => {
     }
   }, [filteredResults, currentPage, itemsPerPage]);
 
-  // 🆕 สร้างฟังก์ชัน debounced search ด้วย useMemo แทน useCallback
+  // สร้างฟังก์ชัน debounced search
   const debouncedSearch = useMemo(
     () => debounce(async (searchQuery) => {
       setIsLoading(true);
       try {
-        const response = await searchData(searchQuery);
+        const response = await searchDataKeyWSynonyms(searchQuery);
         console.log('Search Results:', response);
         
         const data = response.data || response;
@@ -185,7 +178,7 @@ const SearchPageCombine = () => {
           setAllResults([]);
           setError('The data format received is not correct');
         }
-        setCurrentPage(1); // กลับไปที่หน้าแรกเมื่อผลลัพธ์การค้นหาเปลี่ยน
+        setCurrentPage(1);
       } catch (err) {
         console.error('Search Error:', err);
         setError('Unable to search. Please try again.');
@@ -193,8 +186,8 @@ const SearchPageCombine = () => {
       } finally {
         setIsLoading(false);
       }
-    }, 300), // รอ 300ms หลังจากหยุดพิมพ์
-    [] // empty dependencies
+    }, 300),
+    []
   );
 
   // โหลดข้อมูลเริ่มต้น
@@ -202,7 +195,7 @@ const SearchPageCombine = () => {
     const fetchInitialData = async () => {
       setIsLoading(true);
       try {
-        const response = await searchData('');
+        const response = await searchDataKeyWSynonyms('');
         console.log('Initial data load:', response);
         
         const data = response.data || response;
@@ -240,14 +233,12 @@ const SearchPageCombine = () => {
     setCurrentPage(pageNumber);
   };
 
-  // จัดการการเปลี่ยนหมวดหมู่ (multiple selection)
+  // จัดการการเปลี่ยนหมวดหมู่
   const handleCategoryChange = (category) => {
     setSelectedCategories(prev => {
       if (prev.includes(category)) {
-        // ถ้ามีอยู่แล้ว ให้ลบออก
         return prev.filter(cat => cat !== category);
       } else {
-        // ถ้ายังไม่มี ให้เพิ่มเข้าไป
         return [...prev, category];
       }
     });
@@ -267,7 +258,6 @@ const SearchPageCombine = () => {
   const renderPaginationButtons = () => {
     const buttons = [];
     
-    // ปุ่มย้อนกลับหน้า
     buttons.push(
       <button
         key="prev"
@@ -283,17 +273,14 @@ const SearchPageCombine = () => {
       </button>
     );
     
-    // จำนวนปุ่มที่จะแสดง (แสดงสูงสุด 5 ปุ่ม)
     const maxVisibleButtons = 5;
     let startPage = Math.max(1, currentPage - Math.floor(maxVisibleButtons / 2));
     let endPage = Math.min(totalPages, startPage + maxVisibleButtons - 1);
     
-    // ปรับค่า startPage ถ้า endPage เกินจำนวนหน้าทั้งหมด
     if (endPage - startPage + 1 < maxVisibleButtons && startPage > 1) {
       startPage = Math.max(1, endPage - maxVisibleButtons + 1);
     }
     
-    // เพิ่มจุดไข่ปลาถ้ามีหน้าก่อนหน้า startPage
     if (startPage > 1) {
       buttons.push(
         <button
@@ -314,7 +301,6 @@ const SearchPageCombine = () => {
       }
     }
     
-    // สร้างปุ่มหน้า
     for (let i = startPage; i <= endPage; i++) {
       buttons.push(
         <button
@@ -331,7 +317,6 @@ const SearchPageCombine = () => {
       );
     }
     
-    // เพิ่มจุดไข่ปลาถ้ามีหน้าหลัง endPage
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
         buttons.push(
@@ -352,7 +337,6 @@ const SearchPageCombine = () => {
       );
     }
     
-    // ปุ่มไปหน้าถัดไป
     buttons.push(
       <button
         key="next"
@@ -373,7 +357,7 @@ const SearchPageCombine = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-200 to-teal-600 p-4">
-      {/* 🆕 Tooltip Component */}
+      {/* Tooltip Component */}
       {tooltip.show && (
         <div
           className="fixed z-50 bg-gray-800 text-white text-sm p-4 rounded-lg shadow-lg pointer-events-none"
@@ -409,7 +393,7 @@ const SearchPageCombine = () => {
         </div>
       )}
 
-      {/* ปุ่มกลับหน้า Home ที่มุมซ้ายบน */}
+      {/* ปุ่มกลับหน้า Home */}
       <div className="fixed top-4 left-4 z-10">
         <Link 
           to="/" 
@@ -422,10 +406,9 @@ const SearchPageCombine = () => {
         </Link>
       </div>
 
-      {/* Filter Section - ใต้ปุ่ม Back to Home */}
+      {/* Filter Section */}
       <div className="fixed top-20 left-4 z-10">
         <div className="w-72 bg-white rounded-lg shadow-md border border-gray-200">
-          {/* Reset Filters Button */}
           {selectedCategories.length > 0 && (
             <div className="p-4 border-b border-gray-200">
               <button
@@ -440,13 +423,11 @@ const SearchPageCombine = () => {
             </div>
           )}
 
-          {/* Category Section */}
           <div className="p-4">
             <h3 className="text-sm font-semibold text-gray-800 uppercase tracking-wide mb-3">
               CATEGORY
             </h3>
             
-            {/* Show selected categories - แสดงทั้งหมดไม่มี scroll */}
             {selectedCategories.length > 0 && (
               <div className="mb-4">
                 <div className="text-xs text-gray-600 mb-2">
@@ -470,7 +451,6 @@ const SearchPageCombine = () => {
               </div>
             )}
 
-            {/* Category selection dropdown */}
             <div className="relative">
               <select 
                 className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 appearance-none bg-white"
@@ -494,7 +474,6 @@ const SearchPageCombine = () => {
             </div>
           </div>
 
-          {/* Filter Results Button */}
           <div className="p-4 border-t border-gray-200">
             <div className="text-sm text-gray-600 mb-2">
               FILTER RESULTS
@@ -509,12 +488,12 @@ const SearchPageCombine = () => {
         </div>
       </div>
 
-      {/* Main Content Container - ปรับ margin-left ให้เว้นที่สำหรับ Filter */}
+      {/* Main Content Container */}
       <div className="max-w-7xl mx-auto bg-gray-100 rounded-xl shadow-lg p-6 mt-16 ml-80">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-teal-800 text-center mb-6 flex items-center justify-center">
             <span className="mr-2 text-4xl">🛍️</span>
-            Emission Factor (CFO & CFP & Carbon Label Project)
+            Emission Factor (CFO & CFP)
           </h1>
           
           <div className="relative w-full max-w-3xl mx-auto">
@@ -537,17 +516,14 @@ const SearchPageCombine = () => {
           </div>
         </div>
 
-        {/* แสดง Error */}
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6 max-w-3xl mx-auto">
             <span className="block sm:inline">{error}</span>
           </div>
         )}
 
-        {/* แสดงผลลัพธ์ในตาราง */}
         {!isLoading && allResults.length > 0 ? (
           <div className="w-full">
-            {/* Results Header */}
             <div className="mb-6">
               <h2 className="text-xl font-semibold text-gray-800 mb-2">
                 {filteredResults.length.toLocaleString()} results found
@@ -565,7 +541,6 @@ const SearchPageCombine = () => {
               )}
             </div>
             
-            {/* Show information about currently displayed items */}
             <div className="flex justify-between items-center mb-4">
               <div className="text-sm text-gray-600">
                 Showing items {filteredResults.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} - {Math.min(currentPage * itemsPerPage, filteredResults.length)} of {filteredResults.length.toLocaleString()} total
@@ -577,7 +552,7 @@ const SearchPageCombine = () => {
                   value={itemsPerPage}
                   onChange={(e) => {
                     setItemsPerPage(Number(e.target.value));
-                    setCurrentPage(1); // Return to first page when changing items per page
+                    setCurrentPage(1);
                   }}
                   className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-teal-500"
                 >
@@ -593,7 +568,6 @@ const SearchPageCombine = () => {
             {filteredResults.length > 0 ? (
               <>
                 <div className="border border-gray-300 rounded-lg overflow-hidden shadow-lg mb-4">
-                  {/* 🆕 Enhanced DataTableCombine with tooltip events */}
                   <DataTableCombine 
                     data={displayedResults}
                     onMouseEnter={showTooltip}
@@ -601,7 +575,6 @@ const SearchPageCombine = () => {
                   />
                 </div>
                 
-                {/* แสดง Pagination */}
                 {totalPages > 1 && (
                   <div className="flex justify-center my-6">
                     <div className="flex flex-wrap">
@@ -651,4 +624,4 @@ const SearchPageCombine = () => {
   );
 };
 
-export default SearchPageCombine;
+export default SearchPageCombineKeyWSynonyms;

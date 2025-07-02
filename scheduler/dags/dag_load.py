@@ -7,6 +7,7 @@ import urllib3
 import pandas as pd
 from io import StringIO
 from elasticsearch import Elasticsearch
+from elasticsearch.helpers import bulk
 import numpy as np
 
 
@@ -16,9 +17,9 @@ OUTPUT_PATH = r"/opt/airflow/output"
 ELASTICSEARCH_HOST = "https://host.docker.internal:9200"
 ELASTICSEARCH_USER = "elastic"
 ELASTICSEARCH_PASSWORD = "JODDaUKomoKuPHFM2zEc"
-INDEX_NAME = "emission_data"
+INDEX_NAME = "emission_data_upsert"
 
-
+es = Elasticsearch(ELASTICSEARCH_HOST,basic_auth=(ELASTICSEARCH_USER, ELASTICSEARCH_PASSWORD),verify_certs=False)
 current_date = datetime.now()
 last_date = current_date - timedelta(days=1)
 current_date_str = current_date.strftime("%Y%m%d")
@@ -81,133 +82,104 @@ def extract_cfo(**kwargs):
     else:
         raise Exception(f"Failed to fetch CFO data, status code: {response.status_code}")
 
-def extract_carbon_label():
-    pass
-
 
 def merge_table(**kwargs):
     cfp = kwargs['ti'].xcom_pull(task_ids='extract_cfp')
     cfo = kwargs['ti'].xcom_pull(task_ids='extract_cfo')
     table = pd.concat([cfp, cfo], ignore_index=True)
+    table = table.drop(columns=['ลำดับ'])
+    table['ลำดับ'] = range(1,len(table)+1)
+    table['เปลี่ยนแปลง'] = current_date.strftime("%Y-%m-%d")
     output = f"{OUTPUT_PATH}/emission_factor_{current_date_str}.csv"
     table.to_csv(output, index=False, encoding='utf-8-sig')
 
 
-def compare_table(**kwargs):
+def elasticsearch_upsert(**kwargs):
     current_table = f"{OUTPUT_PATH}/emission_factor_{current_date_str}.csv"
     previous_table = f"{OUTPUT_PATH}/emission_factor_{last_date_str}.csv"
     try:
         table1 = pd.read_csv(previous_table)
+        table1.replace({np.nan: None}, inplace=True)
         table2 = pd.read_csv(current_table)
+        table2.replace({np.nan: None}, inplace=True)
         if table1.equals(table2):
             print("No differences found between tables.")
-            kwargs['ti'].xcom_push(key='diff_flag', value=False)
+            return
         else:
             differences = table1.compare(table2)
-            diff_output = f"{OUTPUT_PATH}/differences_{current_date_str_h}.csv"
+            diff_output = f"{OUTPUT_PATH}/differences_{current_date_str}.csv"
             differences.to_csv(diff_output, index=False, encoding='utf-8-sig')
             print(f"Differences saved to {diff_output}")
-            kwargs['ti'].xcom_push(key='diff_flag', value=True) 
-    except FileNotFoundError:
-        print("Previous file not found. Skipping comparison.")
-        kwargs['ti'].xcom_push(key='flag', value=True)
+            merged = pd.merge(table1, table2, on="ลำดับ", suffixes=('_df1', '_df2'))
+
+            merged['Difference'] = merged.apply(
+                lambda row: 'Changed' if any(
+                    row[f"{col}_df1"] != row[f"{col}_df2"]
+                    for col in ["กลุ่ม", "ชื่อ", "รายละเอียด", "หน่วย", "ค่าแฟคเตอร์ (kgCO2e)", "ข้อมูลอ้างอิง", "วันที่อัพเดท", "ประเภทแฟคเตอร์"]
+                ) else 'Unchanged',
+                axis=1)
+            changed_rows = merged[merged['Difference'] == 'Changed']
+            print(changed_rows)
+            update_docs = changed_rows.apply(
+                lambda row: {
+                    "_op_type": "update",
+                    "_id": row["ลำดับ"],
+                    "_index": f"{INDEX_NAME}", 
+                    "doc": {
+                        "กลุ่ม": row["กลุ่ม_df2"],
+                        "ชื่อ": row["ชื่อ_df2"],
+                        "รายละเอียด": row["รายละเอียด_df2"],
+                        "หน่วย": row["หน่วย_df2"],
+                        "ค่าแฟคเตอร์ (kgCO2e)": row["ค่าแฟคเตอร์ (kgCO2e)_df2"],
+                        "ข้อมูลอ้างอิง": row["ข้อมูลอ้างอิง_df2"],
+                        "วันที่อัพเดท": row["วันที่อัพเดท_df2"],
+                        "ประเภทแฟคเตอร์": row["ประเภทแฟคเตอร์_df2"],
+                        "เปลี่ยนแปลง": row["เปลี่ยนแปลง_df2"]
+                    }
+                },
+                axis=1
+            ).tolist()
+            bulk(es, update_docs)
+            print("Updated successfully!")
+
+    except Exception as e:
+        print(f"Error during upsert: {e}")
 
 
-def create_elasticsearch_index(**kwargs):
-    diff_flag = kwargs['ti'].xcom_pull(key='diff_flag', task_ids='compare_tables')
-    if not diff_flag:
-        print("No differences. Skipping Elasticsearch index creation.")
-        return
-
-    # อ่านข้อมูลจาก CSV
+def elasticsearch_insert(**kwargs):
     current_table = f"{OUTPUT_PATH}/emission_factor_{current_date_str}.csv"
-    df = pd.read_csv(current_table)
-    df.replace({np.nan: None}, inplace=True)
 
-    es = Elasticsearch(ELASTICSEARCH_HOST,basic_auth=(ELASTICSEARCH_USER, ELASTICSEARCH_PASSWORD),verify_certs=False)
+    try:
+        table = pd.read_csv(current_table)
+        table.replace({np.nan: None}, inplace=True)
 
-    if es.indices.exists(index=INDEX_NAME):
-        es.indices.delete(index=INDEX_NAME)
-        print(f"Deleted existing index: {INDEX_NAME}")
-
-    index_settings = {
-        "settings": {
-            "analysis": {
-                "filter": {
-                    "thai_edge_ngram_filter": {
-                        "type": "edge_ngram",
-                        "min_gram": 1,
-                        "max_gram": 20,
-                        "token_chars": ["letter", "digit", "whitespace"]
-                    },
-                    "thai_english_synonym_filter": {
-                        "type": "synonym_graph",
-                        "synonyms_path": "analysis/synonyms.txt",
-                        "expand": True
-                    }
-                },
-                "analyzer": {
-                    "thai_autocomplete_analyzer": {
-                        "type": "custom",
-                        "tokenizer": "icu_tokenizer",
-                        "filter": [
-                            "lowercase",
-                            "icu_folding",
-                            "thai_edge_ngram_filter"
-                        ]
-                    },
-                    "thai_synonym_analyzer": {
-                        "type": "custom",
-                        "tokenizer": "icu_tokenizer",
-                        "filter": [
-                            "lowercase",
-                            "icu_folding",
-                            "thai_english_synonym_filter"
-                        ]
-                    }
+        documents = table.apply(
+            lambda row: {
+                "_op_type": "index",
+                "_index": INDEX_NAME,
+                "_id": row["ลำดับ"],
+                "_source": {
+                    "กลุ่ม": row["กลุ่ม"],
+                    "ชื่อ": row["ชื่อ"],
+                    "รายละเอียด": row["รายละเอียด"],
+                    "หน่วย": row["หน่วย"],
+                    "ค่าแฟคเตอร์ (kgCO2e)": row["ค่าแฟคเตอร์ (kgCO2e)"],
+                    "ข้อมูลอ้างอิง": row["ข้อมูลอ้างอิง"],
+                    "วันที่อัพเดท": row["วันที่อัพเดท"],
+                    "ประเภทแฟคเตอร์": row["ประเภทแฟคเตอร์"],
+                    "เปลี่ยนแปลง": row["เปลี่ยนแปลง"]
                 }
-            }
-        },
-        "mappings": {
-            "properties": {
-                "กลุ่ม": {
-                    "type": "text",
-                    "analyzer": "thai_autocomplete_analyzer",
-                    "search_analyzer": "thai_synonym_analyzer"
-                },
-                "ลำดับ": {"type": "float"},
-                "ชื่อ": {
-                    "type": "text",
-                    "analyzer": "thai_autocomplete_analyzer",
-                    "search_analyzer": "thai_synonym_analyzer"
-                },
-                "รายละเอียด": {
-                    "type": "text",
-                    "analyzer": "thai_autocomplete_analyzer",
-                    "search_analyzer": "thai_synonym_analyzer"
-                },
-                "หน่วย": {"type": "text"},
-                "ค่าแฟคเตอร์ (kgCO2e)": {"type": "float"},
-                "ข้อมูลอ้างอิง": {
-                    "type": "text",
-                    "analyzer": "thai_autocomplete_analyzer",
-                    "search_analyzer": "thai_synonym_analyzer"
-                },
-                "วันที่อัพเดท": {"type": "text"},
-                "ประเภทแฟคเตอร์": {"type": "text"}
-            }
-        }
-    }
+            },
+            axis=1
+        ).tolist()
 
-    es.indices.create(index=INDEX_NAME, body=index_settings)
-    print(f"Created new index: {INDEX_NAME}")
-
-    for _, row in df.iterrows():
-        document = row.to_dict()
-        es.index(index=INDEX_NAME, document=document)
+        bulk(es, documents)
+        print(f"Inserted {len(documents)} records successfully into {INDEX_NAME}.")
+    
+    except Exception as e:
+        print(f"Error during Elasticsearch insert: {e}")
 
 
-# กำหนด DAG
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
@@ -218,7 +190,7 @@ default_args = {
 }
 
 with DAG(
-    'extract_emission_data',
+    'extract_emission_data_upsert',
     default_args=default_args,
     description='DAG for extracting carbon emission data',
     schedule_interval='0 * * * *',
@@ -237,28 +209,26 @@ with DAG(
         provide_context=True,
     )
 
-    task_extract_carbon_label = PythonOperator(
-        task_id='extract_carbon_label',
-        python_callable=extract_carbon_label,
-        provide_context=True,
-    )
-
     task_merge = PythonOperator(
         task_id='merge_tables',
         python_callable=merge_table,
         provide_context=True,
     )
 
-    task_compare = PythonOperator(
-        task_id='compare_tables',
-        python_callable=compare_table,
+    task_upsert_index = PythonOperator(
+        task_id='elasticsearch_upsert',
+        python_callable=elasticsearch_upsert,
         provide_context=True,
     )
 
-    task_create_index = PythonOperator(
-        task_id='create_elasticsearch_index',
-        python_callable=create_elasticsearch_index,
-        provide_context=True,
-    )
+    # task_insert_index = PythonOperator(
+    #     task_id='elasticsearch_insert',
+    #     python_callable=elasticsearch_insert,
+    #     provide_context=True,
+    # )
 
-    [task_extract_cfp , task_extract_cfo, task_extract_carbon_label] >> task_merge >> task_compare >> task_create_index
+    # task_insert_index 
+
+
+
+    [task_extract_cfp , task_extract_cfo] >> task_merge >> task_upsert_index

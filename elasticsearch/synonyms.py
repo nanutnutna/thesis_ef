@@ -7,7 +7,9 @@ for i in range(len(df)):
     result = ", ".join([str(item) for item in row_data])
     if i == len(df)-1:
         last_result = f'"{result}"'
+        # print(result)
     else:
         last_result = f'"{result}",'
+        # print(result)
     thai_synonyms.append(result)
-
+# print(thai_synonyms)

@@ -1,14 +1,14 @@
-import React, { useState, useEffect, useMemo } from 'react'; // 🆕 เปลี่ยน useCallback เป็น useMemo
-import { searchData } from "../api/api";
+import React, { useState, useEffect, useCallback } from 'react';
+import { searchDataCombinenoSynonyms } from "../api/api";
 import DataTableCombine from '../components/DataTableCombine';
 import { Link } from 'react-router-dom';
-import { debounce } from 'lodash';
+import { debounce } from 'lodash'; // นำเข้า debounce จาก lodash
 
-const SearchPageCombine = () => {
+const SearchPageCombinenoSynonyms = () => {
   const [query, setQuery] = useState('');
-  const [allResults, setAllResults] = useState([]);
-  const [filteredResults, setFilteredResults] = useState([]);
-  const [displayedResults, setDisplayedResults] = useState([]);
+  const [allResults, setAllResults] = useState([]); // เก็บผลลัพธ์ทั้งหมด
+  const [filteredResults, setFilteredResults] = useState([]); // ผลลัพธ์หลังจากกรอง
+  const [displayedResults, setDisplayedResults] = useState([]); // ผลลัพธ์ที่แสดงในหน้าปัจจุบัน
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -19,14 +19,6 @@ const SearchPageCombine = () => {
 
   // State สำหรับ filter
   const [selectedCategories, setSelectedCategories] = useState([]);
-
-  // 🆕 State สำหรับ tooltip
-  const [tooltip, setTooltip] = useState({
-    show: false,
-    content: '',
-    x: 0,
-    y: 0
-  });
 
   // รายการหมวดหมู่
   const categories = [
@@ -82,53 +74,6 @@ const SearchPageCombine = () => {
     'อาหารสัตว์'
   ];
 
-  // 🆕 ฟังก์ชัน tooltip ที่แสดงเฉพาะใน Name column
-  const showTooltip = (event, item) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    
-    // แสดงข้อมูลทั้งหมดที่มีใน object (ยกเว้นข้อมูลที่แสดงในตารางแล้ว และ text vector)
-    const excludeKeys = [
-      'Category', 'category', 'Name', 'name', 'Unit', 'unit', 
-      'Factor', 'factor', 'Reference', 'reference', 'Last_Updated', 'score',
-      'text_vector', 'textVector', 'text vector', 'vector', 'embedding' // 🆕 ซ่อน text vector
-    ];
-    
-    const infoLines = [];
-    
-    Object.keys(item).forEach(key => {
-      if (!excludeKeys.includes(key) && item[key] !== null && item[key] !== undefined && item[key] !== '' && item[key] !== '-') {
-        const value = item[key].toString();
-        // เพิ่มความยาวที่แสดงได้
-        const displayValue = value.length > 300 ? value.substring(0, 300) + '...' : value;
-        // ใช้ชื่อ field ที่อ่านง่ายขึ้น
-        const displayKey = key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim();
-        infoLines.push(`${displayKey}: ${displayValue}`);
-      }
-    });
-
-    // ถ้าไม่มีข้อมูลเพิ่มเติม ให้แสดงรายชื่อ fields ทั้งหมด (ยกเว้น text vector)
-    const tooltipContent = infoLines.length > 0 
-      ? infoLines.join('\n\n') // เพิ่มระยะห่างระหว่างบรรทัด
-      : 'Available fields:\n' + Object.keys(item).filter(key => !excludeKeys.includes(key)).join(', ');
-
-    setTooltip({
-      show: true,
-      content: tooltipContent,
-      x: rect.left + rect.width / 2,
-      y: rect.top - 10
-    });
-  };
-
-  // 🆕 ฟังก์ชันซ่อน tooltip
-  const hideTooltip = () => {
-    setTooltip({
-      show: false,
-      content: '',
-      x: 0,
-      y: 0
-    });
-  };
-
   // ฟังก์ชันกรองข้อมูลตามหมวดหมู่
   useEffect(() => {
     let filtered = allResults;
@@ -166,12 +111,13 @@ const SearchPageCombine = () => {
     }
   }, [filteredResults, currentPage, itemsPerPage]);
 
-  // 🆕 สร้างฟังก์ชัน debounced search ด้วย useMemo แทน useCallback
-  const debouncedSearch = useMemo(
-    () => debounce(async (searchQuery) => {
+  // สร้างฟังก์ชัน debounced search เพื่อไม่ให้ค้นหาบ่อยเกินไป
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const debouncedSearch = useCallback(
+    debounce(async (searchQuery) => {
       setIsLoading(true);
       try {
-        const response = await searchData(searchQuery);
+        const response = await searchDataCombinenoSynonyms(searchQuery);
         console.log('Search Results:', response);
         
         const data = response.data || response;
@@ -194,7 +140,7 @@ const SearchPageCombine = () => {
         setIsLoading(false);
       }
     }, 300), // รอ 300ms หลังจากหยุดพิมพ์
-    [] // empty dependencies
+    []
   );
 
   // โหลดข้อมูลเริ่มต้น
@@ -202,7 +148,7 @@ const SearchPageCombine = () => {
     const fetchInitialData = async () => {
       setIsLoading(true);
       try {
-        const response = await searchData('');
+        const response = await searchDataCombinenoSynonyms('');
         console.log('Initial data load:', response);
         
         const data = response.data || response;
@@ -373,42 +319,6 @@ const SearchPageCombine = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-200 to-teal-600 p-4">
-      {/* 🆕 Tooltip Component */}
-      {tooltip.show && (
-        <div
-          className="fixed z-50 bg-gray-800 text-white text-sm p-4 rounded-lg shadow-lg pointer-events-none"
-          style={{
-            left: tooltip.x,
-            top: tooltip.y,
-            transform: 'translate(-50%, -100%)',
-            maxWidth: '400px',
-            minWidth: '300px',
-            maxHeight: '300px',
-          }}
-        >
-          <div 
-            className="overflow-y-auto"
-            style={{
-              whiteSpace: 'pre-wrap',
-              wordWrap: 'break-word',
-              lineHeight: '1.5',
-              maxHeight: '280px'
-            }}
-          >
-            {tooltip.content}
-          </div>
-          {/* Arrow */}
-          <div
-            className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0"
-            style={{
-              borderLeft: '8px solid transparent',
-              borderRight: '8px solid transparent',
-              borderTop: '8px solid #374151'
-            }}
-          />
-        </div>
-      )}
-
       {/* ปุ่มกลับหน้า Home ที่มุมซ้ายบน */}
       <div className="fixed top-4 left-4 z-10">
         <Link 
@@ -422,7 +332,7 @@ const SearchPageCombine = () => {
         </Link>
       </div>
 
-      {/* Filter Section - ใต้ปุ่ม Back to Home */}
+      {/* 🆕 Filter Section - ใต้ปุ่ม Back to Home */}
       <div className="fixed top-20 left-4 z-10">
         <div className="w-72 bg-white rounded-lg shadow-md border border-gray-200">
           {/* Reset Filters Button */}
@@ -544,7 +454,7 @@ const SearchPageCombine = () => {
           </div>
         )}
 
-        {/* แสดงผลลัพธ์ในตาราง */}
+        {/* แสดงผลลัพธ์ในตาราง - เอา Filter Sidebar ออก */}
         {!isLoading && allResults.length > 0 ? (
           <div className="w-full">
             {/* Results Header */}
@@ -593,12 +503,7 @@ const SearchPageCombine = () => {
             {filteredResults.length > 0 ? (
               <>
                 <div className="border border-gray-300 rounded-lg overflow-hidden shadow-lg mb-4">
-                  {/* 🆕 Enhanced DataTableCombine with tooltip events */}
-                  <DataTableCombine 
-                    data={displayedResults}
-                    onMouseEnter={showTooltip}
-                    onMouseLeave={hideTooltip}
-                  />
+                  <DataTableCombine data={displayedResults} />
                 </div>
                 
                 {/* แสดง Pagination */}
@@ -651,4 +556,4 @@ const SearchPageCombine = () => {
   );
 };
 
-export default SearchPageCombine;
+export default SearchPageCombinenoSynonyms;
