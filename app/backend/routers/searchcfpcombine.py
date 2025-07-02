@@ -59,7 +59,7 @@ async def search(query: str = Query(None, description="All Table Search")):
                                         }
                                     },
                                     "script": {
-                                        "source": "cosineSimilarity(params.query_vector, 'text_vector') + 1",
+                                        "source": "cosineSimilarity(params.query_vector, 'text_vector') + 10",
                                         "params": {"query_vector": query_vector}
                                     },
                                     "boost": VECTOR_WEIGHT
@@ -131,16 +131,16 @@ async def search(query: str = Query(None, description="All Table Search")):
         unique_results.sort(key=lambda x: x["score"], reverse=True)
         
         # Limit results
-        # if unique_results:
-        #     max_score = unique_results[0]["score"]
-        #     min_threshold = max_score * 0.2
+        if unique_results:
+            max_score = unique_results[0]["score"]
+            min_threshold = max_score * 0.3
             
 
-        #     filtered_results = [
-        #         result for result in unique_results 
-        #         if result["score"] >= min_threshold
-        #     ]
-        #     unique_results = filtered_results
+            filtered_results = [
+                result for result in unique_results 
+                if result["score"] >= min_threshold
+            ]
+            unique_results = filtered_results
         # unique_results = unique_results[:SIZE]
         
                 
