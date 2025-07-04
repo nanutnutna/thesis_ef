@@ -9,17 +9,17 @@ INDEX_NAME = 'combine_new_model'
 # INDEX_NAME = 'thai_combine'
 BM25_WEIGHT = 0.7
 VECTOR_WEIGHT = 0.3
-SIZE = 10000
-# es = ElasticsearchConnection.get_instance()
+SIZE = 1000
+es = ElasticsearchConnection.get_instance()
 # model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
 model = SentenceTransformer('intfloat/multilingual-e5-base')
 # new_model = SentenceTransformer('intfloat/multilingual-e5-base')
 router = APIRouter()
 
-from elasticsearch import Elasticsearch
-es = Elasticsearch(
-  "https://14a823faf1c845b0a02f427056f7112c.asia-southeast1.gcp.elastic-cloud.com:443",
-  api_key="YlRZaHlaY0JVRzZKbi1obUV0WnM6ZDlPTS13VS1Ja1E2S3M1eUpkSE56QQ==")
+# from elasticsearch import Elasticsearch
+# es = Elasticsearch(
+#   "https://14a823faf1c845b0a02f427056f7112c.asia-southeast1.gcp.elastic-cloud.com:443",
+#   api_key="YlRZaHlaY0JVRzZKbi1obUV0WnM6ZDlPTS13VS1Ja1E2S3M1eUpkSE56QQ==")
 
 @router.get("/search-combine")
 async def search(query: str = Query(None, description="All Table Search")):
@@ -59,7 +59,7 @@ async def search(query: str = Query(None, description="All Table Search")):
                                         }
                                     },
                                     "script": {
-                                        "source": "cosineSimilarity(params.query_vector, 'text_vector') + 1",
+                                        "source": "cosineSimilarity(params.query_vector, 'text_vector') + 10",
                                         "params": {"query_vector": query_vector}
                                     },
                                     "boost": VECTOR_WEIGHT
@@ -131,16 +131,16 @@ async def search(query: str = Query(None, description="All Table Search")):
         unique_results.sort(key=lambda x: x["score"], reverse=True)
         
         # Limit results
-        # if unique_results:
-        #     max_score = unique_results[0]["score"]
-        #     min_threshold = max_score * 0.2
+        if unique_results:
+            max_score = unique_results[0]["score"]
+            min_threshold = max_score * 0.2
             
 
-        #     filtered_results = [
-        #         result for result in unique_results 
-        #         if result["score"] >= min_threshold
-        #     ]
-        #     unique_results = filtered_results
+            filtered_results = [
+                result for result in unique_results 
+                if result["score"] >= min_threshold
+            ]
+            unique_results = filtered_results
         # unique_results = unique_results[:SIZE]
         
                 
