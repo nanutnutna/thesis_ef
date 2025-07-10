@@ -16,7 +16,7 @@ OUTPUT_PATH = r"/opt/airflow/output"
 ELASTICSEARCH_HOST = "https://host.docker.internal:9200"
 ELASTICSEARCH_USER = "elastic"
 ELASTICSEARCH_PASSWORD = "JODDaUKomoKuPHFM2zEc"
-INDEX_NAME = "emission_data"
+INDEX_NAME = "emission_data_test"
 
 
 current_date = datetime.now()

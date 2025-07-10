@@ -27,6 +27,7 @@ function Home() {
     { name: 'Carbon Footprint for Product', path: '/cfp', icon: '🏷️' },
     { name: 'Carbon Footprint for Thailand Product', path: '/cfplabel', icon: '🛍️' },
     { name: 'Synonyms Dictionary', path: '/dictionary', icon: '📚' },
+    { name: 'Hybrid Search', path: '/hybrid', icon: '🔍' },
     // { name: 'Keyword-Search', path: '/search', icon: '🔍' },
     // { name: 'Semantic-Search', path: '/combine', icon: '🔍' },
     // { name: 'Hybrid-Search', path: '/hybrid-search', icon: '🔄' },
@@ -105,6 +106,7 @@ function getDescription(name) {
     'Carbon Footprint for Product': "Total amount of greenhouse gases emitted throughout a product's entire life cycle",
     'Carbon Footprint for Thailand Product': 'Total greenhouse gas emissions throughout the entire life cycle of products manufactured in Thailand, certified under Thailand',
     'Synonyms Dictionary': 'Access comprehensive dictionary of emission factors and terminology',
+    'Hybrid Search': 'Combined search across all three databases: CFO, CFP, and Carbon Label for comprehensive emission factor analysis',
     // 'Keyword-Search': "Find exactly what you're looking for with precise word matching.",
     // 'Semantic-Search': 'Discover relevant content based on meaning, not just exact words.',
     // 'Hybrid-Search': 'Get the best of both worlds—precise matching plus meaning-based results for optimal relevance.'

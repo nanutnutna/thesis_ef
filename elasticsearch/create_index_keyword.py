@@ -14,14 +14,14 @@ INDEX_NAME = 'keyword_combine_with_synonym'
 # JSON_PATH = f'combine_{CURRENTDATE}.json'
 # JSON_PATH = f'combine_20250602.json'
 JSON_PATH = f'combine_20250701.json'
-# es = ElasticsearchConnection.get_instance()
+es = ElasticsearchConnection.get_instance()
 
 
 
-from elasticsearch import Elasticsearch
-es = Elasticsearch(
-  "https://14a823faf1c845b0a02f427056f7112c.asia-southeast1.gcp.elastic-cloud.com:443",
-  api_key="YlRZaHlaY0JVRzZKbi1obUV0WnM6ZDlPTS13VS1Ja1E2S3M1eUpkSE56QQ==")
+# from elasticsearch import Elasticsearch
+# es = Elasticsearch(
+#   "https://14a823faf1c845b0a02f427056f7112c.asia-southeast1.gcp.elastic-cloud.com:443",
+#   api_key="YlRZaHlaY0JVRzZKbi1obUV0WnM6ZDlPTS13VS1Ja1E2S3M1eUpkSE56QQ==")
 
 if es.ping():
     print("Successfully connected to Elastic!")
